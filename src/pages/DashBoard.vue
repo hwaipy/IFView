@@ -75,8 +75,6 @@ const columns = [
   { name: 'Received Messages /s', align: 'center', label: 'R/Sps', field: row => row.Statistics['Received Message per Second'], format: val => formatDataSize(val, 'Bps', true), sortable: true },
   { name: 'Sent Bytes /s', align: 'center', label: 'S/Bps', field: row => row.Statistics['Sent Bytes per Second'], format: val => formatDataSize(val, 'Bps', true), sortable: true },
   { name: 'Sent Messages /s', align: 'center', label: 'S/Sps', field: row => row.Statistics['Sent Message per Second'], format: val => formatDataSize(val, 'Bps', true), sortable: true },
-  //TODO
-  // custom header, show tooltip
 ]
 
 const formatAddress = (address) => {

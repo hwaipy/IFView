@@ -26,5 +26,10 @@ export default route(function (/* { store, ssrContext } */) {
     history: createHistory(process.env.VUE_ROUTER_BASE)
   })
 
+  Router.beforeEach((to, from, next) => {
+    document.title = to.meta.title ? to.meta.title : 'InteractionFree View'
+    next()
+  })
+
   return Router
 })

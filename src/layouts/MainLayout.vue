@@ -53,7 +53,7 @@
         <q-list padding>
           <div v-for="link in links" :key="link.text">
             <div v-if="link.type == 'item'">
-              <q-item v-ripple clickable href="#/dashboard">
+              <q-item v-ripple clickable :href="link.href">
                 <q-item-section avatar>
                   <q-icon color="grey" :name="link.icon" />
                 </q-item-section>
@@ -71,7 +71,7 @@
             </div>
           </div>
 
-          <div class="q-px-md text-grey-9">
+          <!-- <div class="q-px-md text-grey-9">
             <div class="row items-center q-gutter-x-sm q-gutter-y-xs">
               <a v-for="button in buttons1" :key="button.text" class="YL__drawer-footer-link" href="javascript:void(0)">
                 {{ button.text }}
@@ -84,7 +84,7 @@
                 {{ button.text }}
               </a>
             </div>
-          </div>
+          </div> -->
         </q-list>
       </q-scroll-area>
     </q-drawer>
@@ -106,10 +106,11 @@ function toggleLeftDrawer() {
 }
 
 const links = [
-  { type: 'item', icon: 'speed', text: 'Dashboard' },
+  { type: 'item', icon: 'speed', text: 'Dashboard', href: '#/dashboard' },
   { type: 'separator' },
-  { type: 'title', text: 'TF' },
-  { type: 'item', icon: 'speed', text: 'Dashboard2' },
+  { type: 'title', text: 'TF-QKD' },
+  { type: 'item', icon: 'speed', text: 'TDCViewer', href: '#/tdcviewer?tdcservice=TFTDCServer&collection=TFQKD_TDC' },
+  { type: 'item', icon: 'speed', text: 'Encoding', href: '#/tdcencoding' },
   { type: 'separator' },
 ]
 
