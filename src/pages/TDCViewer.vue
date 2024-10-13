@@ -14,7 +14,7 @@
               <div class="channel-info-histogram-indicator"
                 :style="{ backgroundColor: getPaletteColor(getChannelIndicatorColor(channelInfo)), borderRadius: '0px' }">
               </div>
-              <div class="row channel-info-label" style="font-weight: bold">
+              <div class="row channel-info-label" style="font-weight: bold" @click="toggleChannelStatus(channelInfo.i)">
                 <div class="col self-center">CH{{ ('0' + channelInfo.i).slice(-2,) }}</div>
               </div>
               <q-input v-model="channelInfo.formattedCount" class="channel-info-input channel-info-input-count"
@@ -23,8 +23,10 @@
                 <div class="col self-center">@</div>
               </div>
               <q-input v-model="channelInfo.formattedDelay" :key="'delay-input-' + channelInfo.i"
-                @blur="onDelayInputBlur(channelInfo.i)" @keyup.enter="onDelayInputEnter(channelInfo.i)"
-                input-class="text-right" class="channel-info-input channel-info-input-delay" square outlined></q-input>
+                @focus="onDelayEditorFocus(channelInfo.i)" @blur="onDelayEditorBlur(channelInfo.i)"
+                @keyup.enter="onDelayEditorEnter(channelInfo.i)" @keyup.esc="onDelayEditorEscape(channelInfo.i)"
+                :ref="(el) => channelInfo.element = el" input-class="text-right"
+                class="channel-info-input channel-info-input-delay" square outlined></q-input>
               <div class="row channel-info-label">
                 <div class="col self-center">ns</div>
               </div>
@@ -35,11 +37,15 @@
     </template>
     <template v-slot:after>
       <q-card class="histogram-card" bordered>
-        <q-item>
-          <q-item-section>
+        <q-card-section style="height: 48px; padding-left: 16px; padding-top: 12px;">
+          <div class="row">
             <q-item-label class="text-h6">Histograms</q-item-label>
-          </q-item-section>
-        </q-item>
+            <div class="col text-red" v-if="fetchTimeDelta > 3000" style="display: flex; justify-content: right;">
+              <q-icon color="red" size="xs" :name="'warning'" style="padding-right: 8px;" />
+              The most recent data was fetched {{ numberFormat.format(parseInt(fetchTimeDelta / 1000)) }} s ago.
+            </div>
+          </div>
+        </q-card-section>
         <q-separator />
         <q-card-section horizontal>
           <q-card-section>
@@ -50,7 +56,12 @@
                   <div class="col self-center">{{ histogramInfo.label }}</div>
                 </div>
                 <div class="q-pa-md col histogram-info-label">
-                  <q-input class="channel-info-input" square outlined input-class="text-right"></q-input>
+                  <q-input class="channel-info-input" v-model="histogramInfo.formattedValue" square outlined
+                    @focus="onHistogramConfigEditorFocus(histogramInfo)"
+                    @blur="onHistogramConfigEditorBlur(histogramInfo)"
+                    @keyup.enter="onHistogramConfigEditorEnter(histogramInfo)"
+                    @keyup.esc="onHistogramConfigEditorEscape(histogramInfo)" :ref="(el) => histogramInfo.element = el"
+                    input-class="text-right"></q-input>
                 </div>
                 <div v-if="histogramInfo.tail" class="q-pa-md row histogram-info-label" style="padding-right: 4px;">
                   <div class="col self-center">{{ histogramInfo.tail }}</div>
@@ -61,8 +72,33 @@
         </q-card-section>
         <q-separator />
         <q-card-section horizontal>
-          <q-card-section>
+          <q-card-section style="width: 100%;">
             <div id="viewport"></div>
+          </q-card-section>
+        </q-card-section>
+        <q-separator />
+        <q-card-section horizontal>
+          <q-card-section>
+            <div class="row">
+              <q-card v-for="detailedInfo in detailedInfos" :key="detailedInfo.i"
+                class="row histogram-info-item items-center justify-between">
+                <q-input class="channel-info-input" square outlined></q-input>
+                <!-- <div class="q-pa-md row histogram-info-label" style="font-weight: bold;">
+                  <div class="col self-center">{{ histogramInfo.label }}</div>
+                </div>
+                <div class="q-pa-md col histogram-info-label">
+                  <q-input class="channel-info-input" v-model="histogramInfo.formattedValue" square outlined
+                    @focus="onHistogramConfigEditorFocus(histogramInfo)"
+                    @blur="onHistogramConfigEditorBlur(histogramInfo)"
+                    @keyup.enter="onHistogramConfigEditorEnter(histogramInfo)"
+                    @keyup.esc="onHistogramConfigEditorEscape(histogramInfo)" :ref="(el) => histogramInfo.element = el"
+                    input-class="text-right"></q-input>
+                </div>
+                <div v-if="histogramInfo.tail" class="q-pa-md row histogram-info-label" style="padding-right: 4px;">
+                  <div class="col self-center">{{ histogramInfo.tail }}</div>
+                </div> -->
+              </q-card>
+            </div>
           </q-card-section>
         </q-card-section>
       </q-card>
@@ -79,39 +115,78 @@ import { Histogram, TDCStorageStreamFetcher, linspace } from '../services/IFExp'
 import Plotly from 'plotly.js-dist'
 const { getPaletteColor } = colors
 const route = useRoute()
+const numberFormat = new Intl.NumberFormat('ja-JP')
 
 // TODO  From 不是 0时，plot 图里的横坐标似乎不对
-// TODO  处理 delay 等参数的更新检查
 
 const parameters = route.query
 const tdcService = parameters['tdcservice'] || null
 const collection = parameters['collection'] || null
 const analyser = parameters['analyser'] || 'MultiHistogram'
 const channelCount = 16
-const channelInfos = ref(Array(channelCount).fill(0).map((_, i) => { return { i: i, count: 0, formattedCount: '', delay: 0, formattedDelay: '', isTrigger: false, isSignal: false } }))
+const channelInfos = ref(Array(channelCount).fill(0).map((_, i) => { return { i: i, count: 0, formattedCount: '', delay: 0, formattedDelay: '', editing: false, isTrigger: false, isSignal: false, element: null } }))
 const histogramInfos = ref([
-  { name: 'trigger', 'label': 'Trigger', tail: '' },
-  { name: 'divide', 'label': 'Divide', tail: '' },
-  { name: 'bin_num', 'label': 'BinNum', tail: '' },
-  { name: 'from', 'label': 'From', tail: 'ns' },
-  { name: 'to', 'label': 'To', tail: 'ns' },
+  { name: 'trigger', 'label': 'Trigger', tail: '', keyInServer: 'Sync', format: (_) => _, parse: (_) => parseInt(_) },
+  { name: 'divide', 'label': 'Divide', tail: '', keyInServer: 'Divide', format: numberFormat.format, parse: (_) => parseInt(_) },
+  { name: 'bin_num', 'label': 'BinNum', tail: '', keyInServer: 'BinCount', format: numberFormat.format, parse: (_) => parseInt(_.replace(/,/g, '')) },
+  { name: 'from', 'label': 'From', tail: 'ns', keyInServer: 'ViewStart', format: (_) => { return numberFormat.format(_ / 1000) }, parse: (_) => parseInt(parseFloat(_.replace(/,/g, '')) * 1000) },
+  { name: 'to', 'label': 'To', tail: 'ns', keyInServer: 'ViewStop', format: (_) => { return numberFormat.format(_ / 1000) }, parse: (_) => parseInt(parseFloat(_.replace(/,/g, '')) * 1000) },
 ])
+histogramInfos.value.forEach((e) => { e['value'] = 0; e['formattedValue'] = ''; e['editing'] = false; e['element'] = null; })
+const detailedInfos = ref(Array(channelCount).fill(0).map((_, i) => { return { i: i, express: '', display: '' } }))
 
-const splitterModel = ref('290')
+const fetchTimeDelta = ref(-1)
+
+const splitterModel = ref(290)
 
 const TDCHistograms = new Array(channelCount)
 for (var i = 0; i < TDCHistograms.length; i++) {
   TDCHistograms[i] = new Histogram()
 }
 
-function onDelayInputBlur(ch) { doneDelayEditing(ch) }
-function onDelayInputEnter(ch) { doneDelayEditing(ch) }
-function doneDelayEditing(ch) {
+function onDelayEditorFocus(ch) { channelInfos.value[ch].editing = true }
+function onDelayEditorBlur(ch) { doneDelayEditing(ch, true, true) }
+function onDelayEditorEnter(ch) { doneDelayEditing(ch, true, false) }
+function onDelayEditorEscape(ch) {
+  doneDelayEditing(ch, false, false)
+  channelInfos.value[ch].element.blur()
+}
+function doneDelayEditing(ch, apply, stop) {
+  if (stop) channelInfos.value[ch].editing = false
   const delay_ns = parseFloat(channelInfos.value[ch].formattedDelay)
   const delay_ps = Number.isNaN(delay_ns) ? 0 : parseInt(delay_ns * 1000)
-  channelInfos.value[ch].delay = delay_ps
-  channelInfos.value[ch].formattedDelay = formatDelay(delay_ps)
-  worker[tdcService].setDelay(ch, delay_ps)
+  if (delay_ps != channelInfos.value[ch].delay && apply) {
+    channelInfos.value[ch].delay = delay_ps
+    worker[tdcService].setDelay(ch, channelInfos.value[ch].delay)
+  }
+  channelInfos.value[ch].formattedDelay = formatDelay(channelInfos.value[ch].delay)
+}
+
+function onHistogramConfigEditorFocus(info) { info.editing = true }
+function onHistogramConfigEditorBlur(info) { doneHistogramConfigEditing(info, true, true) }
+function onHistogramConfigEditorEnter(info) { doneHistogramConfigEditing(info, true, false) }
+function onHistogramConfigEditorEscape(info) {
+  doneHistogramConfigEditing(info, false, false)
+  info.element.blur()
+}
+function doneHistogramConfigEditing(info, apply, stop) {
+  if (stop) info.editing = false
+  const value = info.parse(info.formattedValue)
+  if (value != info.value && apply) {
+    info.value = value
+    const config = {}
+    config[info.keyInServer] = info.value
+    worker[tdcService].configureAnalyser(analyser, config)
+  }
+  info.formattedValue = info.format(info.value)
+}
+
+function toggleChannelStatus(ch) {
+  if (tdcConfiger == null) return
+  if (channelInfos.value[ch].isTrigger) return
+  channelInfos.value[ch].isSignal = !channelInfos.value[ch].isSignal
+  const signals = channelInfos.value.filter((info) => { return info.isSignal && !info.isTrigger }).map((info) => { return info.i })
+  worker[tdcService].configureAnalyser(analyser, { 'Signals': signals })
 }
 
 class TDCConfiger {
@@ -119,72 +194,36 @@ class TDCConfiger {
     this.worker = worker
     this.tdcService = tdcService
     this.recentDelays = null
+    this.running = false
   }
 
   start() {
-    this.updateDelays()
+    this.running = true
+    this.updateConfigs()
   }
 
-  stop() { }
+  stop() {
+    this.running = false
+  }
 
-  async updateDelays() {
+  async updateConfigs() {
     this.recentDelays = await worker[tdcService].getDelays()
     for (const i in this.recentDelays) {
       channelInfos.value[i].delay = this.recentDelays[i]
-      channelInfos.value[i].formattedDelay = formatDelay(this.recentDelays[i])
+      if (!channelInfos.value[i].editing) channelInfos.value[i].formattedDelay = formatDelay(this.recentDelays[i])
     }
-
-    //   var mhResult = await worker[tdcService].getAnalyserConfiguration(analyser)
-    //   if (this.editingField != 'Sync') $('#DPTI_Sync').val(mhResult['Sync'])
-    //   if (this.editingField != 'ViewStart') $('#DPTI_ViewStart').val(mhResult[
-    //     'ViewStart'] / 1000.0)
-    //   if (this.editingField != 'ViewStop') $('#DPTI_ViewStop').val(mhResult[
-    //     'ViewStop'] / 1000.0)
-    //   if (this.editingField != 'BinCount') $('#DPTI_BinCount').val(mhResult[
-    //     'BinCount'])
-    //   if (this.editingField != 'Divide') $('#DPTI_Divide').val(mhResult[
-    //     'Divide'])
-    //   var signals = mhResult['Signals']
-    //   for (var i = 0; i < this.recentDelays.length; i++) {
-    //     $('#ChannelPane_' + i).removeClass("border-left-warning")
-    //     $('#ChannelPane_' + i).removeClass("border-left-success")
-    //     $('#ChannelPane_' + i).removeClass("border-left-danger")
-    //     if (i == mhResult['Sync']) {
-    //       $('#ChannelPane_' + i).addClass("border-left-danger")
-    //     } else if (signals.includes(i)) {
-    //       $('#ChannelPane_' + i).addClass("border-left-success")
-    //     } else {
-    //       $('#ChannelPane_' + i).addClass("border-left-warning")
-    //     }
-    //   }
-    //   setTimeout(this.updateDelays.bind(this), 1100)
+    const mhResult = await worker[tdcService].getAnalyserConfiguration(analyser)
+    for (const histogramInfo of histogramInfos.value) {
+      histogramInfo.value = mhResult[histogramInfo.keyInServer]
+      if (!histogramInfo.editing) histogramInfo.formattedValue = histogramInfo.format(mhResult[histogramInfo.keyInServer])
+    }
+    const signals = mhResult['Signals']
+    for (let i = 0; i < this.recentDelays.length; i++) {
+      channelInfos.value[i].isTrigger = (i == mhResult['Sync'])
+      channelInfos.value[i].isSignal = (signals.includes(i))
+    }
+    if (this.running) setTimeout(this.updateConfigs.bind(this), 1100)
   }
-
-  // edited(id) {
-  //   this.editingField = null
-  //   var editedField = id.split('_')[1]
-  //   var editedValue = $('#' + id).val()
-  //   if (!isNaN(parseInt(editedField))) {
-
-  //   } else {
-  //     // edited a MultiHistogram config
-  //     var config = {}
-  //     var valid = true
-  //     if (editedField == 'Sync') {
-  //       config['Sync'] = parseInt(editedValue)
-  //       valid = !isNaN(config['Sync'])
-  //     }
-  //     if (editedField == 'ViewStart' || editedField == 'ViewStop') {
-  //       config[editedField] = parseFloat(editedValue) * 1000.0
-  //       valid = !isNaN(config[editedField])
-  //     }
-  //     if (editedField == 'BinCount' || editedField == 'Divide') {
-  //       config[editedField] = parseInt(editedValue)
-  //       valid = !isNaN(config[editedField])
-  //     }
-  //     if (valid) worker[tdcService].configureAnalyser(analyser, config)
-  //   }
-  // }
 }
 
 const tdcConfiger = tdcService != null ? new TDCConfiger(worker, tdcService) : null
@@ -193,80 +232,61 @@ filter['Data.' + analyser] = 1
 const fetcher = new TDCStorageStreamFetcher(worker, collection, 500, filter, plot, listener)
 
 onMounted(() => {
-  // fetching.value = true
-  // doMetaFetch()
-  if (tdcConfiger != null) {
-    tdcConfiger.start()
-  }
-  // initControlPanel(channelCount)
+  if (tdcConfiger != null) tdcConfiger.start()
   fetcher.start()
 })
 onUnmounted(() => {
-  // fetching.value = false
-  if (tdcConfiger != null) {
-    tdcConfiger.stop()
-  }
+  if (tdcConfiger != null) tdcConfiger.stop()
   fetcher.stop()
 })
 
 function listener(event, arg) {
-  // console.log('listen on fetch update: ', event, arg);
-
-  // if (event == 'FetchTimeDelta') {
-  //   fetchTimeDelta = arg
-  //   if (fetchTimeDelta > 3000) {
-  //     $('#HistogramWarning')[0].classList.remove('d-none')
-  //     $('#HistogramWarningContent').html("The most recent data was fetched " +
-  //       parseInt(fetchTimeDelta / 1000) + " s ago.")
-  //   } else {
-  //     $('#HistogramWarning')[0].classList.add('d-none')
-  //   }
-  // } else if (event == 'FetchingProgress') {
-  //   progress = parseInt(arg * 100)
-  //   $('#FetchingProgress').attr('style',
-  //     'background-image: linear-gradient(to right, #BDE6FF ' + (progress) +
-  //     '%, #F8F9FC ' + (progress) + '%)')
-  // } else if (event == 'FetchingNumber') {
-  //   if (arg == null) {
-  //     $('#FetchNumberContent').html('')
-  //     $('#FetchNumber')[0].classList.add('d-none')
-  //   } else {
-  //     integralFetchedDataCount = arg[0]
-  //     integralTotalDataCount = arg[1]
-  //     integralTime = arg[2]
-  //     content = integralTotalDataCount + ' items (in ' + integralTime + ' s)'
-  //     if (integralFetchedDataCount < integralTotalDataCount) content =
-  //       integralFetchedDataCount + ' / ' + content
-  //     $('#FetchNumber')[0].classList.remove('d-none')
-  //     $('#FetchNumberContent').html(content)
-  //   }
-  // } else if (event == 'HistogramXsMatched') {
-  //   if (!arg) {
-  //     $('#HistogramError')[0].classList.remove('d-none')
-  //     $('#HistogramErrorContent').html("Histogram Config Not Matched.")
-  //   } else {
-  //     $('#HistogramError')[0].classList.add('d-none')
-  //   }
-  // } else if (event == 'TooManyRecords') {
-  //   if (arg) {
-  //     $('#TooManyRecordsError')[0].classList.remove('d-none')
-  //     $('#TooManyRecordsErrorContent').html("Too Many Records.")
-  //   } else {
-  //     $('#TooManyRecordsError')[0].classList.add('d-none')
-  //   }
-  // } else {
-  //   console.log(event + ', ' + arg);
-  // }
+  if (event == 'FetchTimeDelta') {
+    fetchTimeDelta.value = arg
+    // } else if (event == 'FetchingProgress') {
+    //   progress = parseInt(arg * 100)
+    //   $('#FetchingProgress').attr('style',
+    //     'background-image: linear-gradient(to right, #BDE6FF ' + (progress) +
+    //     '%, #F8F9FC ' + (progress) + '%)')
+    // } else if (event == 'FetchingNumber') {
+    //   if (arg == null) {
+    //     $('#FetchNumberContent').html('')
+    //     $('#FetchNumber')[0].classList.add('d-none')
+    //   } else {
+    //     integralFetchedDataCount = arg[0]
+    //     integralTotalDataCount = arg[1]
+    //     integralTime = arg[2]
+    //     content = integralTotalDataCount + ' items (in ' + integralTime + ' s)'
+    //     if (integralFetchedDataCount < integralTotalDataCount) content =
+    //       integralFetchedDataCount + ' / ' + content
+    //     $('#FetchNumber')[0].classList.remove('d-none')
+    //     $('#FetchNumberContent').html(content)
+    //   }
+    // } else if (event == 'HistogramXsMatched') {
+    //   if (!arg) {
+    //     $('#HistogramError')[0].classList.remove('d-none')
+    //     $('#HistogramErrorContent').html("Histogram Config Not Matched.")
+    //   } else {
+    //     $('#HistogramError')[0].classList.add('d-none')
+    //   }
+    // } else if (event == 'TooManyRecords') {
+    //   if (arg) {
+    //     $('#TooManyRecordsError')[0].classList.remove('d-none')
+    //     $('#TooManyRecordsErrorContent').html("Too Many Records.")
+    //   } else {
+    //     $('#TooManyRecordsError')[0].classList.add('d-none')
+    //   }
+  } else {
+    console.log(event + ', ' + arg);
+  }
 }
 
 function plot(result, append) {
-  console.log('plot sth.');
-
   const layout = {
     xaxis: { title: 'Time (ns)' },
     yaxis: { title: 'Count' },
     margin: { l: 50, r: 30, b: 50, t: 30, pad: 4 },
-    // autosize: true,
+    autosize: true,
   }
   layout['updatemenus'] = [
     {
@@ -327,15 +347,6 @@ function plot(result, append) {
     const syncChannel = configuration['Sync'];
     const signalChannels = configuration['Signals'];
 
-    // Deal histogram configs
-    //   if ($('#HistoPane_Sync').find('.DPTI').attr('disabled')) {
-    //     $('#HistoPane_Sync').find('.DPTI').val(syncChannel)
-    //     $('#HistoPane_Divide').find('.DPTI').val(divide)
-    //     $('#HistoPane_BinCount').find('.DPTI').val(length)
-    //     $('#HistoPane_ViewStart').find('.DPTI').val(viewFrom)
-    //     $('#HistoPane_ViewStop').find('.DPTI').val(viewTo)
-    //   }
-
     const xs = linspace(viewFrom, viewTo / divide, length)
     let histogramXsMatched = true
     let coincidences = 0
@@ -376,97 +387,6 @@ function plot(result, append) {
   Plotly.redraw('viewport')
 }
 /***
-
-function initControlPanel(channelNum) {
-  temp = $('#DelayPaneTemp')
-  for (var i = 0; i < channelNum; i++) {
-    newItem = temp.clone(true)
-    newItem.removeClass('d-none')
-    newItem.addClass('border-left-warning')
-    newItem.attr('id', 'ChannelPane_' + i)
-    $('#ChannelPane').append(newItem)
-    newItem.find('.DPTT').html('CH' + (i < 10 ? '0' : '') + i)
-    newItem.find('.DPTT').attr('id', 'DPTT_' + i)
-    newItem.find('.DPTI').attr('id', 'DPTI_' + i)
-    if (tdcConfiger == null) {
-      newItem.find('.DPTI').attr('disabled', 'true')
-    }
-  }
-  temp.remove()
-
-  temp = $('#HistoPaneTemp')
-
-  function addHistoPane(title, hasTail, id) {
-    newItem = temp.clone(true)
-    newItem.removeClass('d-none')
-    newItem.addClass('border-left-info')
-    newItem.attr('id', 'HistoPane_' + id)
-    newItem.find('.DPTT').html(title)
-    if (!hasTail) {
-      newItem.find('.DPTTi').addClass('d-none')
-    }
-    newItem.find('.DPTI').attr('id', 'DPTI_' + id)
-    if (tdcConfiger == null) {
-      newItem.find('.DPTI').attr('disabled', 'true')
-    }
-    $('#ViewPanel').append(newItem)
-  }
-  addHistoPane('Trigger', false, 'Sync')
-  addHistoPane('Divide', false, 'Divide')
-  addHistoPane('BinNum', false, 'BinCount')
-  addHistoPane('From', true, 'ViewStart')
-  addHistoPane('To', true, 'ViewStop')
-  temp.remove()
-
-  temp = $('#DetailPaneTemp')
-
-  function addDetailPane(title, hasTail, id) {
-    newItem = temp.clone(true)
-    newItem.removeClass('d-none')
-    newItem.addClass('border-left-info')
-    newItem.attr('id', 'DetailPane_' + id)
-    newItem.find('.DPTT').html(title)
-    if (!hasTail) {
-      newItem.find('.DPTTi').addClass('d-none')
-    }
-    newItem.find('.DPTI').attr('id', 'DePTI_' + id)
-    newItem.find('.DPTI').attr('disabled', 'true')
-    $('#DetailPanel').append(newItem)
-  }
-  addDetailPane('Count 4/8', false, 'Ratio48')
-  addDetailPane('Count 5/9', false, 'Ratio59')
-  addDetailPane('符合(±0.5ns)', false, 'Coins')
-  addDetailPane('Eff A', false, 'EffA')
-  addDetailPane('Eff B', false, 'EffB')
-  addDetailPane('产率', false, 'Gen')
-  temp.remove()
-}
-
-function onTDCConfigInputFocus(id, isBlur) {
-  if (isBlur) tdcConfiger.edited(id)
-  else tdcConfiger.editing(id)
-}
-
-function toggleChannelStatus(id) {
-  if (tdcConfiger == null) return
-  id = id.split('_')[1]
-  if ($('#ChannelPane_' + id).hasClass('border-left-danger')) return
-  isOpen = $('#ChannelPane_' + id).hasClass('border-left-success')
-  $('#ChannelPane_' + id).removeClass('border-left-success')
-  $('#ChannelPane_' + id).removeClass('border-left-warning')
-  $('#ChannelPane_' + id).addClass('border-left-' + (isOpen ? 'warning' :
-    'success'))
-
-  signals = []
-  for (var i = 0; i < channelCount; i++) {
-    if ($('#ChannelPane_' + i).hasClass('border-left-success')) {
-      signals.push(i)
-    }
-  }
-  worker[tdcService].configureAnalyser(analyser, {
-    'Signals': signals
-  })
-}
 
 function updateIntegralData() {
   var beginTime = onBlurIntegralRange('input-integral-from')
@@ -570,6 +490,9 @@ function formatDelay(delay) {
 .histogram-card
   margin: 8px
   margin-left: 0px
+  .q-card__section--vert
+    padding: 8px
+    padding-bottom: 0px
 
 .histogram-info-item
   width: 160px
@@ -586,4 +509,7 @@ function formatDelay(delay) {
 .histogram-info-input
   .q-field__control
     width: 90px
+
+#viewport
+  margin-bottom: 8px
 </style>

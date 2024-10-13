@@ -38,7 +38,7 @@ const getMixedColor = (color1, value1, color2, value2, value) => {
 }
 
 const getPingColor = (delay) => {
-  for (var i in colorMap) {
+  for (let i = 0; i < colorMap.length; i++) {
     if (i == 0) continue
     if (delay > colorMap[i][0]) continue
     return getMixedColor(colorMap[i - 1][1], colorMap[i - 1][0], colorMap[i][1], colorMap[i][0], delay)

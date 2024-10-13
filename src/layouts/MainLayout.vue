@@ -48,7 +48,7 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="leftDrawerOpen" show-if-above bordered class="bg-grey-2" :width="240">
+    <q-drawer v-model="leftDrawerOpen" show-if-above bordered class="bg-grey-2" :width="200">
       <q-scroll-area class="fit">
         <q-list padding>
           <div v-for="link in links" :key="link.text">
@@ -109,26 +109,26 @@ const links = [
   { type: 'item', icon: 'speed', text: 'Dashboard', href: '#/dashboard' },
   { type: 'separator' },
   { type: 'title', text: 'TF-QKD' },
-  { type: 'item', icon: 'speed', text: 'TDCViewer', href: '#/tdcviewer?tdcservice=TFTDCServer&collection=TFQKD_TDC' },
-  { type: 'item', icon: 'speed', text: 'Encoding', href: '#/tdcencoding' },
+  { type: 'item', icon: 'timeline', text: 'TDCViewer', href: '#/tdcviewer?tdcservice=TFTDCServer&collection=TFQKD_TDC' },
+  { type: 'item', icon: 'leaderboard', text: 'Encoding', href: '#/tdcencoding' },
   { type: 'separator' },
 ]
 
-const buttons1 = [
-  { text: 'About' },
-  { text: 'Press' },
-  { text: 'Copyright' },
-  { text: 'Contact us' },
-  { text: 'Creators' },
-  { text: 'Advertise' },
-  { text: 'Developers' }
-]
-const buttons2 = [
-  { text: 'Terms' },
-  { text: 'Privacy' },
-  { text: 'Policy & Safety' },
-  { text: 'Test new features' }
-]
+// const buttons1 = [
+//   { text: 'About' },
+//   { text: 'Press' },
+//   { text: 'Copyright' },
+//   { text: 'Contact us' },
+//   { text: 'Creators' },
+//   { text: 'Advertise' },
+//   { text: 'Developers' }
+// ]
+// const buttons2 = [
+//   { text: 'Terms' },
+//   { text: 'Privacy' },
+//   { text: 'Policy & Safety' },
+//   { text: 'Test new features' }
+// ]
 </script>
 
 <style lang="sass">
