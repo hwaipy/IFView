@@ -1,7 +1,10 @@
+import moment from 'moment';
+
 class Histogram {
   constructor() {
     this.xs = null
     this.xsMatch = true
+
     this.ys = null
   }
 
@@ -25,9 +28,8 @@ class Histogram {
         this.ys[i] = 0
       }
     } else {
-      if (!_.isEqual(this.xs, xs)) {
-        this.xsMatch = false
-      }
+      if (!Array.isArray(this.xs) || !Array.isArray(xs) || this.xs.length != xs.length) this.xsMatch = false
+      if (!this.xs.zip(xs).every((_) => { return _[0] == _[1] })) this.xsMatch = false
     }
     for (var i = 0; i < ys.length; i++) {
       this.ys[i] += ys[i]
@@ -58,50 +60,6 @@ function linspace(a, b, n) {
     ret[i] = (i * b + (n - i) * a) / n;
   }
   return ret;
-}
-
-function parseSimpleDate(str) {
-  date = new Date()
-  str = str.replaceAll("：", ":")
-  var pattern = new RegExp(
-    "^((((([0-9]+)-)?([0-9]+))-)?([0-9]+) )?([0-9]+):([0-9]+)(:([0-9]+))?$")
-  r = pattern.exec(str)
-  if (r == null) return null
-  hour = r[8]
-  min = r[9]
-  day = r[7]
-  month = r[6]
-  year = r[5]
-  second = r[11]
-
-  if (year) {
-    currentYear = "" + date.getFullYear()
-    if (year.length < currentYear.length) {
-      year = currentYear.substring(0, currentYear.length - year.length) + year
-    }
-    date.setFullYear(year)
-  }
-  if (month) date.setMonth(month - 1)
-  if (day) date.setDate(day)
-  date.setHours(hour)
-  date.setMinutes(min)
-  if (second) date.setSeconds(second)
-  return date
-}
-
-function dateToString(date) {
-  year = '' + date.getFullYear()
-  month = '' + (date.getMonth() + 1)
-  day = '' + date.getDate()
-  hour = '' + date.getHours()
-  minute = '' + date.getMinutes()
-  second = '' + date.getSeconds()
-  return year + '-' +
-    (month.length < 2 ? '0' + month : month) + '-' +
-    (day.length < 2 ? '0' + day : day) + ' ' +
-    (hour.length < 2 ? '0' + hour : hour) + ':' +
-    (minute.length < 2 ? '0' + minute : minute) + ':' +
-    (second.length < 2 ? '0' + second : second)
 }
 
 String.prototype.replaceAll = function (s1, s2) {
@@ -147,7 +105,7 @@ class TDCStorageStreamFetcher {
     this.ploter(null, false)
     this.fetching = true
     this.update()
-    // this.updateRangedResult()
+    this.updateRangedResult()
   }
 
   stop() {
@@ -189,8 +147,7 @@ class TDCStorageStreamFetcher {
     var fetchID = this.fetchID
     this.integralTime = parseInt((endTime.getTime() - beginTime.getTime()) / 1000)
     try {
-      var rangedSummaries = await worker.Storage.range(this.collection, this.dateToISO(
-        beginTime), this.dateToISO(endTime), 'FetchTime', { '_id': 1 }, 1000)
+      var rangedSummaries = await this.worker.Storage.range(this.collection, this.dateToISO(beginTime), this.dateToISO(endTime), 'FetchTime', { '_id': 1 }, 1000)
       this.integralTotalDataCount += rangedSummaries.length
       if (rangedSummaries.length > 1000) {
         this.changeMode('Stop')
@@ -198,11 +155,8 @@ class TDCStorageStreamFetcher {
       } else {
         for (var i = 0; i < rangedSummaries.length; i++) {
           this.integralMostRecentTime = new Date()
-          this.integralMostRecentTime.setTime(Date.parse(rangedSummaries[i][
-            'FetchTime'
-          ]))
-          var item = await worker.Storage.get(this.collection,
-            rangedSummaries[i]['_id'], '_id', this.filter)
+          this.integralMostRecentTime.setTime(Date.parse(rangedSummaries[i]['FetchTime']))
+          var item = await this.worker.Storage.get(this.collection, rangedSummaries[i]['_id'], '_id', this.filter)
           this.rangedResultQueue.push([fetchID, item])
         }
         if (rangedSummaries.length > 0) this.lastTime = rangedSummaries[rangedSummaries.length - 1]['FetchTime']
@@ -210,6 +164,7 @@ class TDCStorageStreamFetcher {
       }
     } catch (error) {
       console.log("Error: " + error)
+      console.log(error);
     }
   }
 
@@ -287,6 +242,7 @@ class TDCStorageStreamFetcher {
     this.integralTotalDataCount = 0
     this.integralFetchedDataCount = 0
     this.integralContinuesHasNew = false
+    this.rangedResultQueue = []
     if (mode == 'Instant') this.lastTime = 0
     if (mode != 'Stop') this.fetchID += 1
     this.ploter(null, false)
@@ -298,13 +254,28 @@ class TDCStorageStreamFetcher {
     this.integralEndTime = endTime
     this.changeMode("Stop")
     this.changeMode(isToNow ? "IntegralContinues" : "Integral")
-    // if (isToNow) this.lastTime = this.dateToISO(endTime)
+    if (isToNow) this.lastTime = this.dateToISO(endTime)
     this.range(beginTime, endTime)
   }
 
   dateToISO(date) {
-    return dateToString(date).replace(' ', 'T') + '.000000+08:00'
+    return moment(date).format('YYYY-MM-DDTHH:mm:ss.SSSSSS+08:00')
   }
 }
 
-export { Histogram, TDCStorageStreamFetcher, linspace }
+const eDateTimes = ['YYYY-MM-DD HH:mm:ss', 'YYYY-MM-DD HH:mm:ss.S']
+for (let i = 0; i < 6; i++) eDateTimes.push(eDateTimes[eDateTimes.length - 1] + 'S')
+
+const parseDateString = (val) => {
+  val = val.trim().replaceAll(/ +/g, ' ');
+  if (val.length == 0) return -1;
+  for (var i in eDateTimes) {
+    try {
+      const m = moment(val, eDateTimes[i], true);
+      if (m.isValid()) return m.valueOf();
+    } catch (error) { }
+  }
+  return NaN;
+}
+
+export { Histogram, TDCStorageStreamFetcher, linspace, parseDateString }

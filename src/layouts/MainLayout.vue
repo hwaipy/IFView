@@ -38,12 +38,12 @@
             </q-badge>
             <q-tooltip>Notifications</q-tooltip>
           </q-btn> -->
-          <q-btn round flat>
+          <!-- <q-btn round flat>
             <q-avatar size="26px">
               <img src="https://cdn.quasar.dev/img/boy-avatar.png">
             </q-avatar>
             <q-tooltip>Account</q-tooltip>
-          </q-btn>
+          </q-btn> -->
         </div>
       </q-toolbar>
     </q-header>
