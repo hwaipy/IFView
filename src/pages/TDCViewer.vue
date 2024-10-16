@@ -421,7 +421,7 @@ function plot(result, append) {
 
   // get current layout status: linear or log
   const gd = document.getElementById('viewport')
-  if (gd.layout && result != null) {
+  if (gd && gd.layout && result != null) {
     layout['yaxis']['type'] = (gd.layout['yaxis']['type'])
   }
 

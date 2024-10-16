@@ -29,7 +29,8 @@ class Histogram {
       }
     } else {
       if (!Array.isArray(this.xs) || !Array.isArray(xs) || this.xs.length != xs.length) this.xsMatch = false
-      if (!this.xs.zip(xs).every((_) => { return _[0] == _[1] })) this.xsMatch = false
+      // if (!this.xs.zip(xs).every((_) => { return _[0] == _[1] })) this.xsMatch = false
+      if (!this.xs.map((x, i) => [x, xs[i]]).every((_) => { return _[0] == _[1] })) this.xsMatch = false
     }
     for (var i = 0; i < ys.length; i++) {
       this.ys[i] += ys[i]
@@ -66,13 +67,13 @@ String.prototype.replaceAll = function (s1, s2) {
   return this.replace(new RegExp(s1, "gm"), s2);
 }
 
-Array.prototype.zip = function (that) {
-  return this.map((k, i) => [k, that[i]])
-}
+// Array.prototype.zip = function (that) {
+//   return this.map((k, i) => [k, that[i]])
+// }
 
-Array.prototype.sum = function () {
-  return this.reduce((a, b) => a + b, 0)
-}
+// Array.prototype.sum = function () {
+//   return this.reduce((a, b) => a + b, 0)
+// }
 
 async function sleep(inteval) {
   return new Promise(resolve => setTimeout(resolve, inteval))

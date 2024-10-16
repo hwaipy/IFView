@@ -110,7 +110,8 @@ const links = [
   { type: 'separator' },
   { type: 'title', text: 'TF-QKD' },
   { type: 'item', icon: 'timeline', text: 'TDCViewer', href: '#/tdcviewer?tdcservice=TFTDCServer&collection=TFQKD_TDC' },
-  { type: 'item', icon: 'leaderboard', text: 'Encoding', href: '#/tdcencoding' },
+  { type: 'item', icon: 'leaderboard', text: 'Encoding', href: '#/tdcencoding?collection=TFQKD_TDC' },
+  { type: 'item', icon: 'settings', text: 'Config', href: '#/config?tdcservice=TFTDCServer&collection=TFQKD_TDC' },
   { type: 'separator' },
 ]
 

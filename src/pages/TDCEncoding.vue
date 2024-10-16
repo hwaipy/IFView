@@ -1,90 +1,146 @@
 <template>
-  <q-page class="flex q-pa-md">
-    <div class="full-page-element">
-      Encoding
-    </div>
-  </q-page>
+  <q-card class="histogram-card" bordered>
+    <q-card-section style="height: 48px; padding-left: 16px; padding-top: 0px;">
+      <div class="row">
+        <q-item-label class="text-h6" style="margin-top: 12px;">Encoding Histograms</q-item-label>
+        <div class="" style="margin-left: 10px; margin-top: 6px">
+          <q-btn-toggle v-model="histogramMode" size="md" toggle-color="green-6" :options="histogramModeOptions" />
+        </div>
+        <div class="col text-red" v-if="fetchTimeDelta > 3000"
+          style="display: flex; justify-content: right; margin-top: 12px;">
+          <q-icon color="red" size="xs" :name="'warning'" style="padding-right: 8px;" />
+          The most recent data was fetched {{ numberFormat.format(parseInt(fetchTimeDelta / 1000)) }} s ago.
+        </div>
+      </div>
+    </q-card-section>
+    <q-separator v-if="histogramMode == 'review'" />
+    <q-card-section v-if="histogramMode == 'review'" style="height: 48px; padding-left: 16px; padding-top: 0px;">
+      <div class="row">
+        <div class="" style="margin-top: 14px; font-weight: bold;"> Review from
+        </div>
+        <q-input class="channel-info-input channel-info-input-review" v-model="reviewTimeBeginModel.formatted" square
+          outlined input-class="text-center" @blur="onReviewTimeBeginEditted(true)"
+          @keyup.enter="onReviewTimeBeginEditted(true)"
+          @keyup.esc="reviewTimeBeginModel.formatted = ''; onReviewTimeBeginEditted(true);"
+          @update:model-value="onReviewTimeBeginEditted(false)" :error="!reviewTimeBeginModel.valid" error-message=""
+          no-error-icon></q-input>
+        <div class="" style="margin-top: 14px; font-weight: bold;"> to </div>
+        <q-input class="channel-info-input channel-info-input-review" v-model="reviewTimeEndModel.formatted" square
+          outlined input-class="text-center" @blur="onReviewTimeEndEditted(true)"
+          @keyup.enter="onReviewTimeEndEditted(true)"
+          @keyup.esc="reviewTimeEndModel.formatted = ''; onReviewTimeEndEditted(true);"
+          @update:model-value="onReviewTimeEndEditted(false)" :error="!reviewTimeEndModel.valid" error-message=""
+          no-error-icon></q-input>
+        <q-btn style="height: 32px; margin-top: 6px; margin-left: 8px" color="green-6"
+          :disabled="!reviewTimeBeginModel.valid || !reviewTimeEndModel.valid || reviewDataPreparing"
+          @click="onUpdateReview">Update</q-btn>
+        <div class="col text-red" v-if="reviewError['tooManyRecords'] || reviewError['XsNotMatched']"
+          style="display: flex; justify-content: right; margin-top: 12px;">
+          <q-icon color="red" size="xs" :name="'warning'" style="padding-right: 8px;" />
+          {{ (reviewError['tooManyRecords'] ? 'Too Many Records. ' : '') +
+            (reviewError['XsNotMatched'] ? 'Histogram Config Not Matched.' : '') }}
+        </div>
+      </div>
+    </q-card-section>
+    <q-linear-progress :value="reviewUpdateProgress" class="q-mt-md" style="margin-top: 0px;"
+      v-if="reviewUpdateProgress > 0 && reviewUpdateProgress <= 1 && histogramMode == 'review'" animation-speed="300" />
+    <q-separator />
+    <q-card-section horizontal>
+      <q-card-section style="width: 100%;" class="">
+        <div class="card-grid">
+          <q-card v-for="config in MEConfigs" :key="config[1]" class="chart-card" bordered>
+            <q-card-section>
+              <div :id="config[1]" class="viewport"></div>
+            </q-card-section>
+          </q-card>
+        </div>
+      </q-card-section>
+    </q-card-section>
+    <q-separator />
+    <q-card-section style="padding-top: 0px; padding-bottom: 8px">
+      <div class="column">
+        <q-card v-for="reportInfo in reportInfos" :key="reportInfo.key" class="col row"
+          style="margin-top: 8px; margin-bottom: 0px; padding-left: 4px; padding-right: 4px; margin-right: 12px; width: 340px">
+          <div class="q-pa-md row histogram-info-label" style="font-weight: bold; margin-right: 8px; width: 200px">
+            <div class="col self-center text-right"> {{ reportInfo.title + ': ' }} </div>
+          </div>
+          <q-input v-model="reportInfo.value" class="channel-info-input" square outlined readonly
+            input-class="text-right" style="width: 120px"></q-input>
+        </q-card>
+      </div>
+    </q-card-section>
+  </q-card>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { useRoute } from 'vue-router'
 import worker from '../services/IFWorker'
+import { Histogram, TDCStorageStreamFetcher, linspace, parseDateString } from '../services/IFExp'
+import moment from 'moment';
+import Plotly from 'plotly.js-dist'
+const route = useRoute()
+const numberFormat = new Intl.NumberFormat('ja-JP')
 
-const fetching = ref(false)
-const data = ref([])
-var dataTime = 0
-var previousDataTime = 0
+const parameters = route.query
+const collection = parameters['collection'] || null
+const reportInfos = ref([
+  { key: 'SPER', title: 'Signal Pulse Extinction Ratio', value: '' },
+  { key: 'VI', title: 'Vacuum / Z', value: '' },
+  { key: 'XI', title: 'X / Z', value: '' },
+  { key: 'YI', title: 'Y / Z', value: '' },
+  { key: 'SRIP', title: 'Signal / Ref (In Pulse)', value: '' },
+])
+const histogramMode = ref('instant')
+const histogramModeOptions = [{ label: 'Instant', value: 'instant' }, { label: 'Review', value: 'review' }]
+const histogramConfigEditable = ref(true)
+const reviewTimeBeginModel = ref({ value: -1, formatted: '', valid: true })
+const reviewTimeEndModel = ref({ value: -1, formatted: '', valid: true, isToNow: false })
+const reviewUpdateProgress = ref(0)
+const reviewDataPreparing = ref(false)
+const reviewError = ref({ tooManyRecords: false, XsNotMatched: false })
 
-onMounted(() => {
-  // fetching.value = true
-  // doMetaFetch()
+const fetchTimeDelta = ref(-1)
+
+watch(histogramMode, (newVelue) => {
+  fetcher.changeMode(newVelue == 'review' ? "Stop" : "Instant")
+  histogramConfigEditable.value = true
 })
-onUnmounted(() => {
-  // fetching.value = false
-})
+function onReviewTimeBeginEditted(finished) {
+  const dateString = 'YYYY-MM-DD HH:mm:ss'
+  if (reviewTimeBeginModel.value.formatted == '' && finished) reviewTimeBeginModel.value.formatted = moment().format(dateString)
+  reviewTimeBeginModel.value.value = parseDateString(reviewTimeBeginModel.value.formatted)
+  reviewTimeBeginModel.value.valid = !Number.isNaN(reviewTimeBeginModel.value.value)
+  if (finished && reviewTimeBeginModel.value.valid) reviewTimeBeginModel.value.formatted = reviewTimeBeginModel.value.value >= 0 ? moment(reviewTimeBeginModel.value.value).format(dateString) : '';
+}
+function onReviewTimeEndEditted(finished) {
+  const dateString = 'YYYY-MM-DD HH:mm:ss'
+  if (reviewTimeEndModel.value.formatted == '' && finished) reviewTimeEndModel.value.formatted = 'now'
+  reviewTimeEndModel.value.isToNow = reviewTimeEndModel.value.formatted.toLowerCase() == 'now'
+  reviewTimeEndModel.value.value = parseDateString(reviewTimeEndModel.value.formatted)
+  reviewTimeEndModel.value.valid = reviewTimeEndModel.value.isToNow ? true : !Number.isNaN(reviewTimeEndModel.value.value)
+  if (finished && reviewTimeEndModel.value.valid) reviewTimeEndModel.value.formatted = (reviewTimeEndModel.value.isToNow ? 'NOW' : (reviewTimeEndModel.value.value >= 0 ? moment(reviewTimeEndModel.value.value).format(dateString) : ''));
+}
+function onUpdateReview() {
+  reviewDataPreparing.value = true
+  const beginTime = new Date(reviewTimeBeginModel.value.value)
+  const endTime = reviewTimeEndModel.value.isToNow ? new Date() : new Date(reviewTimeEndModel.value.value)
+  const isToNow = reviewTimeEndModel.value.isToNow
+  const valid = reviewTimeBeginModel.value.valid && reviewTimeEndModel.value.valid
+  histogramConfigEditable.value = isToNow
+  if (valid) fetcher.updateIntegralData(beginTime, endTime, isToNow)
+  reviewDataPreparing.value = false
+}
 
-
-/***
-$(document).ready(async function() {
-  var endpoint = 'ws://' + window.location.host + '/ws'
-  var parameterString = window.location.search
-  var parameters = {}
-  if (parameterString.length > 0) {
-    parameterStrings = parameterString.split('?')[1].split('&')
-    for (var i = 0; i < parameterStrings.length; i++) {
-      paras = parameterStrings[i].split('=')
-      if (paras.length == 2) parameters[paras[0]] = paras[1]
-    }
-  }
-  collection = parameters['collection'] || 'TFQKD_TDC'
-  initResultPanel()
-
-  worker = await IFWorker(endpoint)
-
-  filter = {
-    'Data.Counter': 1,
-    'Data.TFQKDEncoding': 1,
-    'Data.TFQKDSyncAlice': 1,
-    'Data.TFQKDSyncBob': 1,
-    'Data.TFQKDSyncAliceMonitor': 1,
-    'Data.TFQKDSyncBobMonitor': 1,
-    // 'Data.CoincidenceHistogram': 1,
-//    'Data.TFQKDEncoding.Configuration': 1,
-//    'Data.TFQKDEncoding.Configuration.SignalChannel': 1,
-//    'Data.TFQKDEncoding.Configuration.TimeAliceChannel': 1,
-//    'Data.TFQKDEncoding.Configuration.TimeBobChannel': 1,
-//    'Data.TFQKDEncoding.Configuration.TriggerChannel': 1,
-//    'Data.TFQKDEncoding.Configuration.Period': 1,
-//    'Data.TFQKDEncoding.Configuration.BinCount': 1,
-//    'Data.TFQKDEncoding.Pulse Count of RandomNumber [0]': 1,
-//    'Data.TFQKDEncoding.Pulse Count of RandomNumber [1]': 1,
-//    'Data.TFQKDEncoding.Pulse Count of RandomNumber [2]': 1,
-//    'Data.TFQKDEncoding.Pulse Count of RandomNumber [3]': 1,
-//    'Data.TFQKDEncoding.Pulse Count of RandomNumber [4]': 1,
-//    'Data.TFQKDEncoding.Pulse Count of RandomNumber [5]': 1,
-//    'Data.TFQKDEncoding.Pulse Count of RandomNumber [6]': 1,
-//    'Data.TFQKDEncoding.Pulse Count of RandomNumber [7]': 1,
-//    'Data.TFQKDEncoding.Histogram with RandomNumber [0]': 1,
-//    'Data.TFQKDEncoding.Histogram with RandomNumber [1]': 1,
-//    'Data.TFQKDEncoding.Histogram with RandomNumber [2]': 1,
-//    'Data.TFQKDEncoding.Histogram with RandomNumber [3]': 1,
-//    'Data.TFQKDEncoding.Histogram with RandomNumber [4]': 1,
-//    'Data.TFQKDEncoding.Histogram with RandomNumber [5]': 1,
-//    'Data.TFQKDEncoding.Histogram with RandomNumber [6]': 1,
-//    'Data.TFQKDEncoding.Histogram with RandomNumber [7]': 1,
-  }
-//  for (var i = 0; i < Object.keys(MEHistogramKeys).length; i++) {
-//    filter['Data.TFQKDEncoding.' + MEHistogramKeys[Object.keys(
-//      MEHistogramKeys)[i]]] = 1
-//  }
-  fetcher = new TDCStorageStreamFetcher(worker, collection, 500, filter, plot, listener)
-  fetcher.start()
-})
-
-console.log()
-
-worker = null
-MEConfigs = [
+const filter = {
+  'Data.Counter': 1,
+  'Data.TFQKDEncoding': 1,
+  'Data.TFQKDSyncAlice': 1,
+  'Data.TFQKDSyncBob': 1,
+  'Data.TFQKDSyncAliceMonitor': 1,
+  'Data.TFQKDSyncBobMonitor': 1,
+}
+const MEConfigs = [
   ['All Pulses', 'meAllPulses', ['All Pulses']],
   ['All Signals', 'meAllSignal', ['All Signals']],
   ['All Ref', 'meRef', ['All Ref']],
@@ -97,21 +153,10 @@ MEConfigs = [
   ['Sync Alice Monitor', 'moSyncAliceMonitor', ['Sync Alice Monitor']],
   ['Sync Bob Monitor', 'moSyncBobMonitor', ['Sync Bob Monitor']],
 ]
+const markPoints = [[4.5, 5.5, '#F1E4C6'], [7, 9.0, '#D3E4EB']]
 
-// MEHistogramKeys = {}
-// for(var i = 0; i < 128; i++) {
-//     MEHistogramKeys[i] = 'Histogram[' + i + ']'
-// }
-////  10: 'Histogram Alice Time',
-////  11: 'Histogram Bob Time',
-
-markPoints = [
-  [4.5, 5.5, '#F1E4C6'],
-  [7, 9.0, '#D3E4EB']
-]
-fillTrace = []
-for (var i = 0; i < markPoints.length; i++) {
-  markPoint = markPoints[i]
+const fillTrace = []
+for (const markPoint of markPoints) {
   fillTrace.push({
     x: [markPoint[0], markPoint[0], markPoint[1], markPoint[1]],
     y: [-1e10, 1e10, 1e10, -1e10],
@@ -123,65 +168,55 @@ for (var i = 0; i < markPoints.length; i++) {
   })
 }
 
-MEHistograms = new Array(MEConfigs.length)
-for (var i = 0; i < MEHistograms.length; i++) {
-  MEHistograms[i] = new Histogram()
+const MEHistograms = new Array(MEConfigs.length).fill(0).map(() => { return new Histogram() })
+
+const fetcher = new TDCStorageStreamFetcher(worker, collection, 500, filter, plot, listener)
+
+onMounted(() => {
+  fetcher.start()
+})
+onUnmounted(() => {
+  fetcher.stop()
+})
+
+function listener(event, arg) {
+  if (event == 'FetchTimeDelta') fetchTimeDelta.value = arg
+  else if (event == 'FetchingProgress') reviewUpdateProgress.value = arg
+  else if (event == 'HistogramXsMatched') reviewError.value['XsNotMatched'] = !arg
+  else if (event == 'TooManyRecords') reviewError.value['tooManyRecords'] = arg
+  else if (event == 'FetchingNumber') { }
+  else console.log(event + ', ' + arg);
 }
-for (var i = 0; i < MEConfigs.length; i++) {
-  newItem = $('.MEViewPane').clone(true)
-  newItem.removeClass('d-none')
-  newItem.removeClass('MEViewPane')
-  newItem.attr('id', 'MEViewPane_' + MEConfigs[i][1])
-  $('.MEViewRow').append(newItem)
-  newItem.find('.MEViewPort').attr('id', MEConfigs[i][1])
-}
-$('.MEViewPane').remove()
 
 function plot(result, append) {
-  var plotStart = new Date().getTime()
-  var layout = {
-    xaxis: {
-      title: 'Time (ns)'
-    },
-    yaxis: {
-      title: 'Count'
-    },
-    margin: {
-      l: 50,
-      r: 30,
-      b: 50,
-      t: 30,
-      pad: 4
-    },
+  const plotStart = new Date().getTime()
+  const layout = {
+    xaxis: { title: 'Time (ns)' },
+    yaxis: { title: 'Count' },
+    margin: { l: 50, r: 30, b: 50, t: 30, pad: 4 },
     // width: 300,
     height: 250,
     showlegend: false,
+    autosize: true,
   }
-  var traces = []
+  const traces = []
   if (result == null) {
-    for (var i = 0; i < MEHistograms.length; i++) {
-      MEHistograms[i].clear()
-      traces.push({
-        x: [0],
-        y: [0],
-        type: 'scatter',
-        name: ''
-      })
+    for (const histogram of MEHistograms) {
+      histogram.clear()
+      traces.push({ x: [0], y: [0], type: 'scatter', name: '' })
     }
-    $('#HistogramWarning')[0].classList.add('d-none')
   } else {
-    console.log(result)
-    var configuration = result['Data']['TFQKDEncoding']['Configuration']
-    var xs = linspace(0, configuration['Period'] / 1000.0, configuration['BinCount'])
-    var histogramXsMatched = true
+    const configuration = result['Data']['TFQKDEncoding']['Configuration']
+    const xs = linspace(0, configuration['Period'] / 1000.0, configuration['BinCount'])
+    let histogramXsMatched = true
     if (!append) MEHistograms.map(h => h.clear())
-    var meData = result['Data']['TFQKDEncoding']
-    for (var i = 0; i < MEConfigs.length; i++) {
-      var hisIs = MEConfigs[i][2]
-      if(MEConfigs[i][1].startsWith('me')) {
+    const meData = result['Data']['TFQKDEncoding']
+    for (const i in MEConfigs) {
+      const hisIs = MEConfigs[i][2]
+      if (MEConfigs[i][1].startsWith('me')) {
         for (var j = 0; j < hisIs.length; j++) {
-            var his = meData['Histogram[' + hisIs[j] + ']']
-            MEHistograms[i].append(xs, his)
+          var his = meData['Histogram[' + hisIs[j] + ']']
+          MEHistograms[i].append(xs, his)
         }
       } else {
         var moData = result['Data']['TFQKD' + MEConfigs[i][2][0].replaceAll(' ', '')]
@@ -194,9 +229,7 @@ function plot(result, append) {
         y: MEHistograms[i].ys,
         type: 'scatter',
         name: 'Trace',
-        line: {
-          color: '#2874A6',
-        }
+        line: { color: '#2874A6' }
       })
     }
     for (var i = 0; i < MEHistograms.length; i++) {
@@ -207,172 +240,91 @@ function plot(result, append) {
     // deal with reports
     updateReports(result, MEHistograms)
   }
-  for (var i = 0; i < MEConfigs.length; i++) {
+  for (let i = 0; i < MEConfigs.length; i++) {
     layout['title'] = MEConfigs[i][0]
     layout['yaxis']['range'] = [0, Math.max(...traces[i]['y']) * 1.05]
-    div = MEConfigs[i][1]
-    data = fillTrace.concat([traces[i]])
+    const div = MEConfigs[i][1]
+    const data = fillTrace.concat([traces[i]])
     Plotly.react(div, data, layout, {
       displaylogo: false,
-      // responsive: true
+      responsive: true
     })
-//    Plotly.redraw(div)
+    Plotly.redraw(div)
   }
   var plotStop = new Date().getTime()
   console.log('plot done in ' + (plotStop - plotStart) + ' ms')
 }
 
-function updateIntegralData() {
-  var beginTime = onBlurIntegralRange('input-integral-from')
-  var endTime = onBlurIntegralRange('input-integral-to')
-  invalid = $("#input-integral-from")[0].classList.contains('is-invalid') ||
-    $("#input-integral-to")[0].classList.contains('is-invalid')
-  var isToNow = $("#input-integral-to")[0].value
-  var isToNow = isToNow.length == 0 || isToNow.toLowerCase() == 'now'
-  if (!invalid) fetcher.updateIntegralData(beginTime, endTime, isToNow)
-}
+async function updateReports(result, histograms) {
+  const regionValues = calculateRegionValues(result, MEHistograms)
+  const signalPulseExtinctionRatio = (regionValues['All Signals'][0] / regionValues['All Signals'][1])
+  const vacuumsCountRate = regionValues['Vacuum'][0] / regionValues['Vacuum'][2]
+  const ZCountRate = regionValues['Z'][0] / regionValues['Z'][2]
+  const XCountRate = regionValues['X'][0] / regionValues['X'][2]
+  const YCountRate = regionValues['Y'][0] / regionValues['Y'][2]
+  const signalRefRatioInPulse = (regionValues['All Signals'][0] / regionValues['All Signals'][2] / regionValues['All Ref'][0] * regionValues['All Ref'][2])
 
-function onSelectionIntegral(isIntegral) {
-  $("#selection-instant").attr("class", isIntegral ? "btn btn-secondary" :
-    "btn btn-success")
-  $("#selection-integral").attr("class", isIntegral ? "btn btn-success" :
-    "btn btn-secondary")
-  $("#IntegralConfig").collapse(isIntegral ? "show" : "hide")
-  fetcher.changeMode(isIntegral ? "Stop" : "Instant")
-}
-
-function onBlurIntegralRange(id) {
-  element = $("#" + id)[0]
-  text = element.value
-  isNow = false
-  if (text.length == 0 || text.toLowerCase() == "now") {
-    parsedDate = new Date()
-    isNow = (id == 'input-integral-to')
-  } else parsedDate = parseSimpleDate(text)
-  classList = element.classList
-  if (parsedDate) {
-    classList.remove('is-invalid')
-    if (!isNow) element.value = dateToString(parsedDate)
-  } else {
-    classList.add('is-invalid')
-  }
-  return parsedDate
-}
-
-function listener(event, arg) {
-  if (event == 'FetchTimeDelta') {
-    fetchTimeDelta = arg
-    if (fetchTimeDelta > 3000) {
-      $('#HistogramWarning')[0].classList.remove('d-none')
-      $('#HistogramWarningContent').html("The most recent data was fetched " +
-        parseInt(fetchTimeDelta / 1000) + " s ago.")
-    } else {
-      $('#HistogramWarning')[0].classList.add('d-none')
-    }
-  } else if (event == 'FetchingProgress') {
-    progress = parseInt(arg * 100)
-    $('#FetchingProgress').attr('style',
-      'background-image: linear-gradient(to right, #BDE6FF ' + (progress) +
-      '%, #F8F9FC ' + (progress) + '%)')
-  } else if (event == 'FetchingNumber') {
-    if (arg == null) {
-      $('#FetchNumberContent').html('')
-      $('#FetchNumber')[0].classList.add('d-none')
-    } else {
-      integralFetchedDataCount = arg[0]
-      integralTotalDataCount = arg[1]
-      integralTime = arg[2]
-      content = integralTotalDataCount + ' items (in ' + integralTime + ' s)'
-      if (integralFetchedDataCount < integralTotalDataCount) content =
-        integralFetchedDataCount + ' / ' + content
-      $('#FetchNumber')[0].classList.remove('d-none')
-      $('#FetchNumberContent').html(content)
-    }
-  } else if (event == 'HistogramXsMatched') {
-    if (!arg) {
-      $('#HistogramError')[0].classList.remove('d-none')
-      $('#HistogramErrorContent').html("Histogram Config Not Matched.")
-    } else {
-      $('#HistogramError')[0].classList.add('d-none')
-    }
-  } else if (event == 'TooManyRecords') {
-    if (arg) {
-      $('#TooManyRecordsError')[0].classList.remove('d-none')
-      $('#TooManyRecordsErrorContent').html("Too Many Records.")
-    } else {
-      $('#TooManyRecordsError')[0].classList.add('d-none')
-    }
-  } else {
-    console.log(event + ', ' + arg);
-  }
-}
-
-function initResultPanel() {
-  temp = $('#ResultPaneTemp')
-
-  function addResultPane(div, title, id) {
-    newItem = temp.clone(true)
-    newItem.removeClass('d-none')
-    newItem.addClass('border-left-info')
-    newItem.find('.DPTT').html(title)
-    newItem.find('.DPTC').attr('id', id)
-    $('#' + div).append(newItem)
-  }
-  addResultPane('ResultPanel_Intensity', 'Signal Pulse Extinction Ratio: ', 'SPER')
-  addResultPane('ResultPanel_Intensity', 'Vacuum / Z: ', 'VI')
-  addResultPane('ResultPanel_Intensity', 'X / Z: ', 'XI')
-  addResultPane('ResultPanel_Intensity', 'Y / Z: ', 'YI')
-  addResultPane('ResultPanel_Intensity', 'Signal / Ref (In Pulse): ', 'SRIP')
-//  addResultPane('ResultPanel_Rise', 'Z 0 Rise: ', 'Z0R')
-//  addResultPane('ResultPanel_Rise', 'Z 1 Rise: ', 'Z1R')
-//  addResultPane('ResultPanel_Rise', 'Alice Rise: ', 'AR')
-//  addResultPane('ResultPanel_Rise', 'Bob Rise: ', 'BR')
-  temp.remove()
+  reportInfos.value[0].value = (10 * Math.log10(signalPulseExtinctionRatio)).toFixed(3) + ' dB'
+  reportInfos.value[1].value = (10 * Math.log10(vacuumsCountRate / (ZCountRate))).toFixed(2) + ' dB'
+  reportInfos.value[2].value = (XCountRate / ZCountRate).toFixed(3)
+  reportInfos.value[3].value = (YCountRate / ZCountRate).toFixed(3)
+  reportInfos.value[4].value = (10 * Math.log10(signalRefRatioInPulse)).toFixed(3) + ' dB'
 }
 
 function calculateRegionValues(result, histograms) {
-  regionValues = {}
-  regionWidths = markPoints.map(markPoint => markPoint[1] - markPoint[0])
+  const regionValues = {}
+  const regionWidths = markPoints.map(markPoint => markPoint[1] - markPoint[0])
   MEConfigs.map((config, i) => {
-    regionValue = markPoints.map(markPoint => {
-      start = markPoint[0]
-      stop = markPoint[1]
-      return histograms[i].xs.zip(histograms[i].ys).filter(z => z[0] >= start && z[0] < stop).map(z => z[1]).sum()
-    })
-    correspondingPulseCount = config[2].map(r => result['Data']['TFQKDEncoding']['PulseCount[' + r + ']']).sum()
+    const regionValue = markPoints.map(markPoint => histograms[i].xs.map((x, j) => [x, histograms[i].ys[j]]).filter(z => z[0] >= markPoint[0] && z[0] < markPoint[1]).map(z => z[1]).reduce((a, b) => a + b, 0))
+    const correspondingPulseCount = config[2].map(r => result['Data']['TFQKDEncoding']['PulseCount[' + r + ']']).reduce((a, b) => a + b, 0)
     return regionValue.map((v, i) => v / regionWidths[i]).concat([correspondingPulseCount])
   }).map((v, i) => regionValues[MEConfigs[i][0]] = v)
   return regionValues
 }
 
-async function updateReports(result, histograms) {
-//    var risesPromise = ['Z 0', 'Z 1', 'Alice Delay', 'Bob Delay'].map(key => {
-    var risesPromise = ['Z 0', 'Z 1'].map(key => {
-    var his = MEHistograms[MEConfigs.map(c => c[0]).indexOf(key)]
-//    return worker.Algorithm_Fitting.riseTimeFit(his.xs, his.ys)
-    return 0
-  })
-
-  var regionValues = calculateRegionValues(result, MEHistograms)
-  var signalPulseExtinctionRatio = (regionValues['All Signals'][0] / regionValues['All Signals'][1])
-  var vacuumsCountRate = regionValues['Vacuum'][0] / regionValues['Vacuum'][2]
-  var ZCountRate = regionValues['Z'][0]/ regionValues['Z'][2]
-  var XCountRate = regionValues['X'][0]/ regionValues['X'][2]
-  var YCountRate = regionValues['Y'][0]/ regionValues['Y'][2]
-  var signalRefRatioInPulse = (regionValues['All Signals'][0] / regionValues['All Signals'][2] / regionValues['All Ref'][0] * regionValues['All Ref'][2])
-
-  $('#SPER').html((10 * Math.log10(signalPulseExtinctionRatio)).toFixed(3) + ' dB')
-  $('#VI').html((10 * Math.log10(vacuumsCountRate / (ZCountRate))).toFixed(2) + ' dB')
-  $('#XI').html((XCountRate / ZCountRate).toFixed(3))
-  $('#YI').html((YCountRate / ZCountRate).toFixed(3))
-  $('#SRIP').html((10 * Math.log10(signalRefRatioInPulse)).toFixed(3) + ' dB')
-
-  var r = await Promise.all(risesPromise)
-//  var doit = ['Z0', 'Z1', 'A', 'B'].map((key, i) => {
-//    $('#' + key + 'R').html(r[i].toFixed(3) + ' ns')
-//  })
-}
-
-*/
-
 </script>
+<style lang="sass">
+.channel-info-input
+  height: 32px
+  margin-top: 2px
+  margin-bottom: 2px
+  .q-field__control
+    height: 32px
+    padding-left: 6px
+    padding-right: 6px
+
+.histogram-card
+  margin: 8px
+  .q-card__section--vert
+    padding: 8px
+    padding-bottom: 0px
+
+.histogram-info-label
+  height: 36px
+  margin-left: 4px
+  margin-right: 4px
+  padding: 0px
+
+.viewport
+  margin-bottom: 8px
+
+.channel-info-input-review
+  margin-top: 8px
+  margin-left: 10px
+  margin-right: 10px
+  .q-field__control
+    width: 180px
+  .q-field__bottom
+    width: 0px
+    height: 0px
+    visibility: hidden
+
+.card-grid
+  display: grid
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr))
+  gap: 10px
+
+.chart-card
+  min-width: 100px
+  max-width: 400px
+</style>

@@ -37,13 +37,12 @@ onUnmounted(() => {
 
 const doMetaFetch = async () => {
   let previousData = {}
-  for (const i in data.value) previousData[formatAddress(data.value[i]['Address'])] = data.value[i]
+  for (const i of data.value) previousData[formatAddress(i['Address'])] = i
   previousDataTime = dataTime
   data.value = await worker.listServiceMeta()
   dataTime = new Date().getTime()
   const timeDelta = dataTime - previousDataTime
-  for (const i in data.value) {
-    const dataItem = data.value[i]
+  for (const dataItem of data.value) {
     const previousDataItem = previousData[formatAddress(dataItem['Address'])]
     if (previousDataItem) {
       dataItem.Statistics['Received Bytes per Second'] = (dataItem.Statistics['Received Bytes'] - previousDataItem.Statistics['Received Bytes']) / timeDelta * 1000
