@@ -65,7 +65,11 @@
             <div class="col self-center text-right"> {{ reportInfo.title + ': ' }} </div>
           </div>
           <q-input v-model="reportInfo.value" class="channel-info-input" square outlined readonly
-            input-class="text-right" style="width: 120px"></q-input>
+            input-class="text-right" style="width: 120px">
+            <q-tooltip :delay="3000" anchor="center right" self="center left" class="text-h2">
+              {{ reportInfo.value }}
+            </q-tooltip>
+          </q-input>
         </q-card>
       </div>
     </q-card-section>
@@ -283,19 +287,19 @@ function calculateRegionValues(result, histograms) {
 }
 
 </script>
-<style lang="sass">
+<style lang="sass" scoped>
 .channel-info-input
   height: 32px
   margin-top: 2px
   margin-bottom: 2px
-  .q-field__control
+  :deep(.q-field__control)
     height: 32px
     padding-left: 6px
     padding-right: 6px
 
 .histogram-card
   margin: 8px
-  .q-card__section--vert
+  :deep(.q-card__section--vert)
     padding: 8px
     padding-bottom: 0px
 
@@ -312,9 +316,9 @@ function calculateRegionValues(result, histograms) {
   margin-top: 8px
   margin-left: 10px
   margin-right: 10px
-  .q-field__control
+  :deep(.q-field__control)
     width: 180px
-  .q-field__bottom
+  :deep(.q-field__bottom)
     width: 0px
     height: 0px
     visibility: hidden

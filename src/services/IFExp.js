@@ -264,6 +264,32 @@ class TDCStorageStreamFetcher {
   }
 }
 
+class SimpleFetcher {
+  constructor(fetchFunction, interval) {
+    this.running = false
+    this.fetchFunction = fetchFunction
+    this.interval = interval
+  }
+
+  start() {
+    this.running = true
+    this.doFetch()
+  }
+
+  stop() {
+    this.running = false
+  }
+
+  async doFetch() {
+    try {
+      await this.fetchFunction()
+    } catch (error) {
+      console.log(error);
+    }
+    if (this.running) setTimeout(this.doFetch.bind(this), this.interval)
+  }
+}
+
 const eDateTimes = ['YYYY-MM-DD HH:mm:ss', 'YYYY-MM-DD HH:mm:ss.S']
 for (let i = 0; i < 6; i++) eDateTimes.push(eDateTimes[eDateTimes.length - 1] + 'S')
 
@@ -279,4 +305,4 @@ const parseDateString = (val) => {
   return NaN;
 }
 
-export { Histogram, TDCStorageStreamFetcher, linspace, parseDateString }
+export { Histogram, TDCStorageStreamFetcher, SimpleFetcher, linspace, parseDateString }

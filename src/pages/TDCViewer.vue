@@ -18,7 +18,11 @@
                 <div class="col self-center">CH{{ ('0' + channelInfo.i).slice(-2,) }}</div>
               </div>
               <q-input v-model="channelInfo.formattedCount" class="channel-info-input channel-info-input-count"
-                input-class="text-right" square outlined readonly></q-input>
+                input-class="text-right" square outlined readonly>
+                <q-tooltip :delay="3000" anchor="center right" self="center left" class="text-h2">
+                  {{ channelInfo.formattedCount }}
+                </q-tooltip>
+              </q-input>
               <div class="row channel-info-label">
                 <div class="col self-center">@</div>
               </div>
@@ -123,7 +127,11 @@
                 <q-tooltip> {{ detailedInfo.expression }} </q-tooltip>
               </div>
               <q-input v-model="detailedInfo.result" class="channel-info-input channel-info-input-detail" square
-                outlined readonly input-class="text-right"></q-input>
+                outlined readonly input-class="text-right">
+                <q-tooltip :delay="3000" anchor="top middle" self="bottom middle" class="text-h2">
+                  {{ detailedInfo.result }}
+                </q-tooltip>
+              </q-input>
               <q-btn round v-if="editingDetailedInfos" icon="close" size="sm" color="red"
                 style="height: 10px; width: 10px; margin-left: 8px;margin-right: 4px"
                 @click="removeDetailedInfoItem(detailedInfo)" />
@@ -523,10 +531,10 @@ function formatDelay(delay) {
 }
 
 </script>
-<style lang="sass">
+<style lang="sass" scoped>
 .channel-card
   margin: 8px
-  .q-card__section--vert
+  :deep(.q-card__section--vert)
     padding: 8px
     padding-bottom: 0px
 
@@ -539,17 +547,17 @@ function formatDelay(delay) {
   height: 32px
   margin-top: 2px
   margin-bottom: 2px
-  .q-field__control
+  :deep(.q-field__control)
     height: 32px
     padding-left: 6px
     padding-right: 6px
 
 .channel-info-input-count
-  .q-field__control
+  :deep(.q-field__control)
     width: 90px
 
 .channel-info-input-delay
-  .q-field__control
+  :deep(.q-field__control)
     width: 70px
 
 .channel-info-label
@@ -563,7 +571,7 @@ function formatDelay(delay) {
 .histogram-card
   margin: 8px
   margin-left: 0px
-  .q-card__section--vert
+  :deep(.q-card__section--vert)
     padding: 8px
     padding-bottom: 0px
 
@@ -580,7 +588,7 @@ function formatDelay(delay) {
   padding: 0px
 
 .histogram-info-input
-  .q-field__control
+  :deep(.q-field__control)
     width: 90px
 
 #viewport
@@ -594,16 +602,16 @@ function formatDelay(delay) {
   margin-right: 12px
 
 .channel-info-input-detail
-  .q-field__control
+  :deep(.q-field__control)
     width: 100px
 
 .channel-info-input-review
   margin-top: 8px
   margin-left: 10px
   margin-right: 10px
-  .q-field__control
+  :deep(.q-field__control)
     width: 180px
-  .q-field__bottom
+  :deep(.q-field__bottom)
     width: 0px
     height: 0px
     visibility: hidden
