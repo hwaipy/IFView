@@ -46,7 +46,7 @@
       v-if="reviewUpdateProgress > 0 && reviewUpdateProgress <= 1 && histogramMode == 'review'" animation-speed="300" />
     <q-separator />
     <q-card-section horizontal>
-      <q-card-section style="width: 100%;" class="">
+      <q-card-section style="width: 100%; padding-bottom: 8px;" class="">
         <div class="card-grid">
           <q-card v-for="config in MEConfigs" :key="config[1]" class="chart-card" bordered>
             <q-card-section>
@@ -325,10 +325,7 @@ function calculateRegionValues(result, histograms) {
 
 .card-grid
   display: grid
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr))
+  grid-template-columns: repeat(auto-fill, minmax(500px, 7fr))
   gap: 10px
 
-.chart-card
-  min-width: 100px
-  max-width: 400px
 </style>

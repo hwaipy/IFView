@@ -4,14 +4,12 @@ import re
 import datetime
 import hashlib
 from yaml import load, dump
-from interactionfreemongodb.app import Config
 from rich.progress import Progress
 from yaml import Loader, Dumper
 
-serverRoot = '/GrayFogWeb/'
+serverRoot = '/web/IFLab'
 mappings = [
-    ['../build', 'web/'],
-    ['.', 'server/'],
+    ['dist/spa', '/web/IFLab'],
 ]
 ignores = [
     'config.ini',
@@ -139,6 +137,7 @@ def performFiles(remote, actions):
         if not tbm in dirMaked:
           remote.mkdir(tbm)
           dirMaked.append(tbm)
+      print(targetPath, action[1].sourceFile)
       remote.upload_sync(remote_path=targetPath, local_path=action[1].sourceFile)
     if action[0] == 'remove':
       targetPath = os.path.join(serverRoot, action[1])
@@ -158,19 +157,21 @@ if __name__ == '__main__':
   import urllib3
   urllib3.disable_warnings()
 
-  config = Config('config.ini')
+  from configparser import ConfigParser
+  config = ConfigParser()
+  config.read('publish.ini')
   options = {
-      'webdav_hostname': f"https://{config['Build'].Address.asString()}:{config['Build'].Port.asInt()}",
-      'webdav_login': config['Build'].Username.asString(),
-      'webdav_password': config['Build'].Password.asString(),
+      'webdav_hostname': f"https://{config.get('Publish', 'Address')}:{config.get('Publish', 'Port')}",
+      'webdav_login': config.get('Publish', 'Username'),
+      'webdav_password': config.get('Publish', 'Password'),
       'disable_check': True,
   }
   client = Client(options)
   client.verify = False  # To not check SSL certificates (Default = True)
 
-  f = open('../public/version', 'w')
-  f.write(datetime.datetime.now().isoformat().split('.')[0].replace(':', '').replace('-', '').replace('T', ''))
-  f.close()
+  # f = open('../public/version', 'w')
+  # f.write(datetime.datetime.now().isoformat().split('.')[0].replace(':', '').replace('-', '').replace('T', ''))
+  # f.close()
 
   fileMappings = prepareFileMappings()
   sourceFileStructure = prepareSourceFileStructure(fileMappings)

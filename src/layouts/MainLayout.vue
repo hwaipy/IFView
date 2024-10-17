@@ -7,7 +7,7 @@
         <q-btn flat no-caps no-wrap class="q-ml-xs" v-if="$q.screen.gt.xs" href="#/">
           <q-icon name="img:favicon.ico" color="red" size="28px" />
           <q-toolbar-title shrink class="text-weight-bold">
-            <div>InteractionFree</div>
+            <NameBrand></NameBrand>
           </q-toolbar-title>
         </q-btn>
         <div style="width: 20px"></div>
@@ -70,7 +70,6 @@
               </q-item-label>
             </div>
           </div>
-
           <!-- <div class="q-px-md text-grey-9">
             <div class="row items-center q-gutter-x-sm q-gutter-y-xs">
               <a v-for="button in buttons1" :key="button.text" class="YL__drawer-footer-link" href="javascript:void(0)">
@@ -88,16 +87,18 @@
         </q-list>
       </q-scroll-area>
     </q-drawer>
-
     <q-page-container>
+      <!-- <q-scroll-area class="flex"> -->
       <router-view />
+      <!-- </q-scroll-area> -->
     </q-page-container>
   </q-layout>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import PingDot from '../components/PingDot.vue'
+import PingDot from 'src/components/PingDot.vue';
+import NameBrand from 'src/components/NameBrand.vue';
 
 const leftDrawerOpen = ref(false)
 
@@ -112,6 +113,7 @@ const links = [
   { type: 'item', icon: 'timeline', text: 'TDCViewer', href: '#/tdcviewer?tdcservice=TFTDCServer&collection=TFQKD_TDC' },
   { type: 'item', icon: 'leaderboard', text: 'Encoding', href: '#/tdcencoding?collection=TFQKD_TDC' },
   { type: 'item', icon: 'settings', text: 'Config', href: '#/config?tdcservice=TFTDCServer&collection=TFQKD_TDC' },
+  { type: 'item', icon: 'monitor', text: 'Monitor', href: '#/tfmonitor?collection=TFQKD_TDC' },
   { type: 'separator' },
 ]
 
