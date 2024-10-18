@@ -2441,10 +2441,10 @@ picomatch@^2.0.4, picomatch@^2.2.1, picomatch@^2.2.2, picomatch@^2.3.1:
   resolved "https://registry.yarnpkg.com/picomatch/-/picomatch-2.3.1.tgz#3ba3833733646d9d3e4995946c1365a67fb07a42"
   integrity sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==
 
-plotly.js-dist@^2.35.2:
+plotly.js-dist-min@^2.35.2:
   version "2.35.2"
-  resolved "https://registry.yarnpkg.com/plotly.js-dist/-/plotly.js-dist-2.35.2.tgz#2bda4b53e6cfe264daac25e2e6adaf1aa69d4aa6"
-  integrity sha512-zbKfz7jXGcLGoyPJxjGrKLttPiqvsEjIMHON/dEU/mnOJ+/yYoEctEEQ3qp5zQmvoovw1L47kCsQpq/GTbejBA==
+  resolved "https://registry.yarnpkg.com/plotly.js-dist-min/-/plotly.js-dist-min-2.35.2.tgz#0d08bcc5dac84c44c36eccdfffdcfd2a6cbefe11"
+  integrity sha512-oWDTf2kYOmTtEw3epeeSBdfH/H3OSktF0suST9oI6fIgKfbyd4MT7TPh8+CVzdHYllYon24Q0HI1hZjOnLqk6g==
 
 postcss-selector-parser@^6.0.15:
   version "6.1.2"

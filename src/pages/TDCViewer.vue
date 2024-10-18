@@ -2,7 +2,7 @@
   <q-splitter v-model="splitterModel" unit="px" separator-style="background-color: #FFFFFF00" disable>
     <template v-slot:before>
       <q-card class="channel-card" bordered>
-        <q-item>
+        <q-item class="bg-card-head">
           <q-item-section>
             <q-item-label class="text-h6">Channels</q-item-label>
           </q-item-section>
@@ -41,11 +41,12 @@
     </template>
     <template v-slot:after>
       <q-card class="histogram-card" bordered>
-        <q-card-section style="height: 48px; padding-left: 16px; padding-top: 0px;">
+        <q-card-section class="bg-card-head" style="height: 48px; padding-left: 16px; padding-top: 0px;">
           <div class="row">
             <q-item-label class="text-h6" style="margin-top: 12px;">Histograms</q-item-label>
             <div class="" style="margin-left: 10px; margin-top: 6px">
-              <q-btn-toggle v-model="histogramMode" size="md" toggle-color="green-6" :options="histogramModeOptions" />
+              <q-btn-toggle v-model="histogramMode" toggle-color="btn-positive" color="btn-negative"
+                :options="histogramModeOptions" unelevated />
             </div>
             <div class="col text-red" v-if="fetchTimeDelta > 3000"
               style="display: flex; justify-content: right; margin-top: 12px;">
@@ -72,8 +73,8 @@
               @keyup.esc="reviewTimeEndModel.formatted = ''; onReviewTimeEndEditted(true);"
               @update:model-value="onReviewTimeEndEditted(false)" :error="!reviewTimeEndModel.valid" error-message=""
               no-error-icon></q-input>
-            <q-btn style="height: 32px; margin-top: 6px; margin-left: 8px" color="green-6"
-              :disabled="!reviewTimeBeginModel.valid || !reviewTimeEndModel.valid || reviewDataPreparing"
+            <q-btn style="height: 32px; margin-top: 6px; margin-left: 8px" color="btn-positive"
+              :disabled="!reviewTimeBeginModel.valid || !reviewTimeEndModel.valid || reviewDataPreparing" unelevated
               @click="onUpdateReview">Update</q-btn>
             <div class="col text-red" v-if="reviewError['tooManyRecords'] || reviewError['XsNotMatched']"
               style="display: flex; justify-content: right; margin-top: 12px;">
@@ -132,16 +133,17 @@
                   {{ detailedInfo.result }}
                 </q-tooltip>
               </q-input>
-              <q-btn round v-if="editingDetailedInfos" icon="close" size="sm" color="red"
+              <q-btn round v-if="editingDetailedInfos" icon="close" size="sm" color="red-4"
                 style="height: 10px; width: 10px; margin-left: 8px;margin-right: 4px"
-                @click="removeDetailedInfoItem(detailedInfo)" />
+                @click="removeDetailedInfoItem(detailedInfo)" unelevated />
             </q-card>
             <div v-if="!addingDetailedInfo" style="padding-top: 11px;">
-              <q-btn round color="grey-6" icon="add" size="sm" style="height: 10px; width: 10px;"
-                @click="addingDetailedInfo = true" />
+              <q-btn round color="btn-negative" icon="add" size="sm" style="height: 10px; width: 10px;"
+                @click="addingDetailedInfo = true" unelevated />
             </div>
             <q-card v-if="addingDetailedInfo" class="row add-detailed-info-item items-center justify-between">
-              <q-btn round color="grey-6" icon="folder_special" size="sm" style="height: 10px; width: 10px;">
+              <q-btn round color="btn-negative" icon="folder_special" size="sm" style="height: 10px; width: 10px;"
+                unelevated>
                 <q-tooltip> Preset Configs. </q-tooltip>
                 <q-menu>
                   <q-list style="min-width: 100px">
@@ -168,16 +170,16 @@
                   style="width: 240px"></q-input>
               </div>
               <div style="padding-left: 12px;">
-                <q-btn round color="green-4" icon="check" size="sm" style="height: 10px; width: 10px;"
-                  @click="onAddingDetailedInfoConfirm(true)"></q-btn>
+                <q-btn round color="btn-positive" icon="check" size="sm" style="height: 10px; width: 10px;"
+                  @click="onAddingDetailedInfoConfirm(true)" unelevated></q-btn>
               </div>
               <div style="padding-left: 6px; padding-right: 8px">
                 <q-btn round color="red-4" icon="clear" size="sm" style="height: 10px; width: 10px;"
-                  @click="onAddingDetailedInfoConfirm(false)"></q-btn>
+                  @click="onAddingDetailedInfoConfirm(false)" unelevated></q-btn>
               </div>
             </q-card>
             <div class="col" style="display: flex; justify-content: right; padding-top: 11px;">
-              <q-btn round :color="editingDetailedInfos ? 'red-6' : 'grey-6'" icon="edit" size="sm"
+              <q-btn round :color="editingDetailedInfos ? 'red-4' : 'btn-negative'" icon="edit" size="sm" unelevated
                 style="height: 10px; width: 10px;" @click="editingDetailedInfos = !editingDetailedInfos" />
             </div>
           </div>
@@ -190,14 +192,15 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute } from 'vue-router'
-import { colors } from 'quasar'
+import { colors, LoadingBar } from 'quasar'
 import worker from '../services/IFWorker'
 import { Histogram, TDCStorageStreamFetcher, linspace, parseDateString } from '../services/IFExp'
 import moment from 'moment';
-import Plotly from 'plotly.js-dist'
+import Plotly from 'plotly.js-dist-min'
 const { getPaletteColor } = colors
 const route = useRoute()
 const numberFormat = new Intl.NumberFormat('ja-JP')
+import loadingBar from 'src/boot/loading-bar';
 
 const parameters = route.query
 const tdcService = parameters['tdcservice'] || null
@@ -327,14 +330,21 @@ function onReviewTimeEndEditted(finished) {
   if (finished && reviewTimeEndModel.value.valid) reviewTimeEndModel.value.formatted = (reviewTimeEndModel.value.isToNow ? 'NOW' : (reviewTimeEndModel.value.value >= 0 ? moment(reviewTimeEndModel.value.value).format(dateString) : ''));
 }
 function onUpdateReview() {
-  reviewDataPreparing.value = true
-  const beginTime = new Date(reviewTimeBeginModel.value.value)
-  const endTime = reviewTimeEndModel.value.isToNow ? new Date() : new Date(reviewTimeEndModel.value.value)
-  const isToNow = reviewTimeEndModel.value.isToNow
-  const valid = reviewTimeBeginModel.value.valid && reviewTimeEndModel.value.valid
-  histogramConfigEditable.value = isToNow
-  if (valid) fetcher.updateIntegralData(beginTime, endTime, isToNow)
-  reviewDataPreparing.value = false
+  // reviewDataPreparing.value = true
+  // const beginTime = new Date(reviewTimeBeginModel.value.value)
+  // const endTime = reviewTimeEndModel.value.isToNow ? new Date() : new Date(reviewTimeEndModel.value.value)
+  // const isToNow = reviewTimeEndModel.value.isToNow
+  // const valid = reviewTimeBeginModel.value.valid && reviewTimeEndModel.value.valid
+  // histogramConfigEditable.value = isToNow
+  // if (valid) fetcher.updateIntegralData(beginTime, endTime, isToNow)
+  // reviewDataPreparing.value = false
+  LoadingBar.setDefaults({
+    color: 'blue',  // 设置进度条颜色
+    size: '40px',    // 设置进度条高度
+    position: 'bottom' // 设置进度条显示在顶部
+  })
+  LoadingBar.start()
+  LoadingBar.increment(20)
 }
 
 function onSelectPreSettedDetailedInfo(addingDetailedInfoPreset) {
@@ -615,4 +625,12 @@ function formatDelay(delay) {
     width: 0px
     height: 0px
     visibility: hidden
+
+:deep(.bg-btn-positive)
+  background: rgb(27,200,139)
+:deep(.bg-btn-negative)
+  background: rgb(133,135,150)
+:deep(.bg-card-head)
+  background: rgb(244,245,248)
+
 </style>

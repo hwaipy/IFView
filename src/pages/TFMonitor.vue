@@ -1,6 +1,6 @@
 <template>
   <q-card class="histogram-card" bordered>
-    <q-card-section style="height: 48px; padding-left: 16px; padding-top: 0px;">
+    <q-card-section class="bg-card-head" style="height: 48px; padding-left: 16px; padding-top: 0px;">
       <div class="row">
         <q-item-label class="text-h6" style="margin-top: 12px;">TDCServer Execution Time</q-item-label>
       </div>
@@ -20,7 +20,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router'
 import worker from '../services/IFWorker'
 import { SimpleFetcher } from 'src/services/IFExp';
-import Plotly from 'plotly.js-dist'
+import Plotly from 'plotly.js-dist-min'
 const route = useRoute()
 
 const parameters = route.query
@@ -74,5 +74,12 @@ onUnmounted(() => {
 
 #viewport
   margin-bottom: 8px
+
+:deep(.bg-btn-positive)
+  background: rgb(27,200,139)
+:deep(.bg-btn-negative)
+  background: rgb(133,135,150)
+:deep(.bg-card-head)
+  background: rgb(244,245,248)
 
 </style>

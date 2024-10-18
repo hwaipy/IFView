@@ -21,7 +21,7 @@ module.exports = configure(function (/* ctx */) {
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
     boot: [
-
+      'loading-bar'
 
     ],
 
@@ -87,7 +87,14 @@ module.exports = configure(function (/* ctx */) {
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#framework
     framework: {
-      config: {},
+      config: {
+        loadingBar: {
+          color: 'purple',    // 进度条颜色
+          size: '3px',        // 进度条高度
+          position: 'top',    // 进度条位置（顶部/底部）
+          speed: 300          // 动画速度
+        }
+      },
 
       // iconSet: 'material-icons', // Quasar icon set
       // lang: 'en-US', // Quasar language pack
@@ -100,7 +107,9 @@ module.exports = configure(function (/* ctx */) {
       // directives: [],
 
       // Quasar plugins
-      plugins: []
+      plugins: [
+        'LoadingBar'
+      ]
     },
 
     // animations: 'all', // --- includes all animations

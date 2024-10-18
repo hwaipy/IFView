@@ -177,5 +177,7 @@ if __name__ == '__main__':
   sourceFileStructure = prepareSourceFileStructure(fileMappings)
   targetFileStructure = loadTargetFileStructure(client, serverRoot, 'summary.yml')
   actions = differential(fileMappings, sourceFileStructure, targetFileStructure)
+  if len(actions) > 0: print(f'Uploading {len(actions)} file changes...')
   performFiles(client, actions)
   performSummary(client, sourceFileStructure)
+  print(f"Done publish.{'' if len(actions) > 0 else ' Nothing new.'}")

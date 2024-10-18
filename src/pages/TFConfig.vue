@@ -1,6 +1,6 @@
 <template>
   <q-card class="histogram-card" bordered>
-    <q-card-section style="height: 48px; padding-left: 16px; padding-top: 0px;">
+    <q-card-section class="bg-card-head" style="height: 48px; padding-left: 16px; padding-top: 0px;">
       <div class="row">
         <q-item-label class="text-h6" style="margin-top: 12px;">TDCServer</q-item-label>
       </div>
@@ -24,7 +24,7 @@
       </q-card-section>
     </q-card-section>
     <q-separator />
-    <q-card-section style="height: 48px; padding-left: 16px; padding-top: 0px;">
+    <q-card-section class="bg-card-head" style="height: 48px; padding-left: 16px; padding-top: 0px;">
       <div class="row">
         <q-item-label class="text-h6" style="margin-top: 12px;">DC Control</q-item-label>
       </div>
@@ -93,7 +93,7 @@
       </q-card-section>
     </q-card-section>
     <q-separator />
-    <q-card-section style="height: 48px; padding-left: 16px; padding-top: 0px;">
+    <q-card-section class="bg-card-head" style="height: 48px; padding-left: 16px; padding-top: 0px;">
       <div class="row">
         <q-item-label class="text-h6" style="margin-top: 12px;">Power & Polarization</q-item-label>
       </div>
@@ -373,4 +373,10 @@ onUnmounted(() => {
   border: 4px ridge rgba(171, 170, 150, .6)
   background-color: rgba(231, 230, 230, .6)
 
+:deep(.bg-btn-positive)
+  background: rgb(27,200,139)
+:deep(.bg-btn-negative)
+  background: rgb(133,135,150)
+:deep(.bg-card-head)
+  background: rgb(244,245,248)
 </style>

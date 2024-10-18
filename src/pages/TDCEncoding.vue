@@ -1,10 +1,11 @@
 <template>
   <q-card class="histogram-card" bordered>
-    <q-card-section style="height: 48px; padding-left: 16px; padding-top: 0px;">
+    <q-card-section class="bg-card-head" style="height: 48px; padding-left: 16px; padding-top: 0px;">
       <div class="row">
         <q-item-label class="text-h6" style="margin-top: 12px;">Encoding Histograms</q-item-label>
         <div class="" style="margin-left: 10px; margin-top: 6px">
-          <q-btn-toggle v-model="histogramMode" size="md" toggle-color="green-6" :options="histogramModeOptions" />
+          <q-btn-toggle v-model="histogramMode" size="md" toggle-color="btn-positive" color="btn-negative" unelevated
+            :options="histogramModeOptions" />
         </div>
         <div class="col text-red" v-if="fetchTimeDelta > 3000"
           style="display: flex; justify-content: right; margin-top: 12px;">
@@ -31,7 +32,7 @@
           @keyup.esc="reviewTimeEndModel.formatted = ''; onReviewTimeEndEditted(true);"
           @update:model-value="onReviewTimeEndEditted(false)" :error="!reviewTimeEndModel.valid" error-message=""
           no-error-icon></q-input>
-        <q-btn style="height: 32px; margin-top: 6px; margin-left: 8px" color="green-6"
+        <q-btn style="height: 32px; margin-top: 6px; margin-left: 8px" color="btn-positive" unelevated
           :disabled="!reviewTimeBeginModel.valid || !reviewTimeEndModel.valid || reviewDataPreparing"
           @click="onUpdateReview">Update</q-btn>
         <div class="col text-red" v-if="reviewError['tooManyRecords'] || reviewError['XsNotMatched']"
@@ -82,7 +83,7 @@ import { useRoute } from 'vue-router'
 import worker from '../services/IFWorker'
 import { Histogram, TDCStorageStreamFetcher, linspace, parseDateString } from '../services/IFExp'
 import moment from 'moment';
-import Plotly from 'plotly.js-dist'
+import Plotly from 'plotly.js-dist-min'
 const route = useRoute()
 const numberFormat = new Intl.NumberFormat('ja-JP')
 
@@ -325,7 +326,13 @@ function calculateRegionValues(result, histograms) {
 
 .card-grid
   display: grid
-  grid-template-columns: repeat(auto-fill, minmax(500px, 7fr))
+  grid-template-columns: repeat(auto-fill, minmax(500px, 1fr))
   gap: 10px
 
+:deep(.bg-btn-positive)
+  background: rgb(27,200,139)
+:deep(.bg-btn-negative)
+  background: rgb(133,135,150)
+:deep(.bg-card-head)
+  background: rgb(244,245,248)
 </style>

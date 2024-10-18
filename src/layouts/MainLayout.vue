@@ -1,18 +1,12 @@
 <template>
-  <q-layout view="hHh lpR fFf" class="bg-grey-1">
+  <q-layout view="lHh lpR fFf" class="bg-grey-1">
     <q-header elevated class="bg-white text-grey-8 q-py-xs" height-hint="58">
       <q-toolbar>
         <q-btn flat dense round @click="toggleLeftDrawer" aria-label="Menu" icon="menu" />
 
-        <q-btn flat no-caps no-wrap class="q-ml-xs" v-if="$q.screen.gt.xs" href="#/">
-          <q-icon name="img:favicon.ico" color="red" size="28px" />
-          <q-toolbar-title shrink class="text-weight-bold">
-            <NameBrand></NameBrand>
-          </q-toolbar-title>
-        </q-btn>
         <div style="width: 20px"></div>
         <PingDot />
-
+        <q-ajax-bar ref="bar" position="bottom" color="accent" size="10px" />
         <q-space />
 
         <!-- <div class="YL__toolbar-input-container row no-wrap">
@@ -48,24 +42,35 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="leftDrawerOpen" show-if-above bordered class="bg-grey-2" :width="200">
-      <q-scroll-area class="fit">
+    <q-drawer v-model="leftDrawerOpen" show-if-above bordered :width="250">
+      <q-scroll-area class="fit" style="background-color: rgb(60, 76, 100);">
+        <!-- <q-btn flat no-caps no-wrap class="q-ml-xs" v-if="$q.screen.gt.xs" href="#/">
+          <q-icon name="img:favicon.ico" color="red" size="28px" />
+          <q-toolbar-title shrink class="text-weight-bold">
+            <NameBrand></NameBrand>
+          </q-toolbar-title>
+        </q-btn> -->
+        <div
+          style="height: 58px; background-color: rgb(48, 61, 84); display: flex; justify-content: center; align-items: center;">
+          <NameBrand></NameBrand>
+        </div>
         <q-list padding>
           <div v-for="link in links" :key="link.text">
             <div v-if="link.type == 'item'">
               <q-item v-ripple clickable :href="link.href">
                 <q-item-section avatar>
-                  <q-icon color="grey" :name="link.icon" />
+                  <q-icon color="white" :name="link.icon" />
                 </q-item-section>
                 <q-item-section>
-                  <q-item-label>{{ link.text }}</q-item-label>
+                  <q-item-label class="text-white">{{ link.text }}</q-item-label>
                 </q-item-section>
               </q-item>
             </div>
             <div v-else-if="link.type == 'separator'">
               <q-separator class="q-my-md" />
             </div>
-            <div v-else-if="link.type == 'title'"> <q-item-label header class="text-weight-bold text-uppercase">
+            <div v-else-if="link.type == 'title'"> <q-item-label header
+                class="text-weight-bold text-uppercase text-white">
                 {{ link.text }}
               </q-item-label>
             </div>
@@ -88,9 +93,11 @@
       </q-scroll-area>
     </q-drawer>
     <q-page-container>
-      <!-- <q-scroll-area class="flex"> -->
-      <router-view />
-      <!-- </q-scroll-area> -->
+      <q-page class="flex flex-col">
+        <q-scroll-area class="scroll-area" style="flex: 1; min-height: 0;">
+          <router-view />
+        </q-scroll-area>
+      </q-page>
     </q-page-container>
   </q-layout>
 </template>
@@ -134,7 +141,7 @@ const links = [
 // ]
 </script>
 
-<style lang="sass">
+<style lang="sass" scoped>
 .YL
 
   &__toolbar-input-container
@@ -157,4 +164,8 @@ const links = [
 
     &:hover
       color: #000
-</style>
+
+:deep(aside)
+  position: fixed
+
+  </style>
