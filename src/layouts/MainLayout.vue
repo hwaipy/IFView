@@ -5,8 +5,8 @@
         <q-btn flat dense round @click="toggleLeftDrawer" aria-label="Menu" icon="menu" />
 
         <div style="width: 20px"></div>
-        <PingDot />
-        <q-ajax-bar ref="bar" position="bottom" color="accent" size="10px" />
+        <!-- <PingDot /> -->
+        <!-- <q-ajax-bar ref="bar" position="bottom" color="accent" size="10px" /> -->
         <q-space />
 
         <!-- <div class="YL__toolbar-input-container row no-wrap">
@@ -32,12 +32,18 @@
             </q-badge>
             <q-tooltip>Notifications</q-tooltip>
           </q-btn> -->
-          <!-- <q-btn round flat>
-            <q-avatar size="26px">
+          <!-- <q-btn round size="10px" flat :style="{ border: '3px solid ' + hbColor }">
+            <q-avatar size="30px">
               <img src="https://cdn.quasar.dev/img/boy-avatar.png">
             </q-avatar>
             <q-tooltip>Account</q-tooltip>
           </q-btn> -->
+          <q-btn round :style="{ color: hbColor, backgroundColor: '#E0E0E0', border: '0px solid black' }" icon="cloud"
+            size="12px" unelevated @click="showSetServerDialog = false">
+            <q-tooltip anchor="center left" self="center right">
+              {{ hbDelay }} ms
+            </q-tooltip>
+          </q-btn>
         </div>
       </q-toolbar>
     </q-header>
@@ -69,8 +75,8 @@
             <div v-else-if="link.type == 'separator'">
               <q-separator class="q-my-md" />
             </div>
-            <div v-else-if="link.type == 'title'"> <q-item-label header
-                class="text-weight-bold text-uppercase text-white">
+            <div v-else-if="link.type == 'title'">
+              <q-item-label header class="text-weight-bold text-uppercase text-white">
                 {{ link.text }}
               </q-item-label>
             </div>
@@ -100,14 +106,32 @@
       </q-page>
     </q-page-container>
   </q-layout>
+  <q-dialog v-model="showSetServerDialog" persistent backdrop-filter="blur(4px)">
+    <q-card>
+      <q-card-section class="row items-center">
+        <q-avatar icon="signal_wifi_off" color="primary" text-color="white" />
+        <span class="q-ml-sm">You are currently not connected to any network.</span>
+      </q-card-section>
+
+      <q-card-actions align="right">
+        <q-btn flat label="Cancel" color="primary" v-close-popup />
+        <q-btn flat label="Turn on Wifi" color="primary" v-close-popup />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import PingDot from 'src/components/PingDot.vue';
 import NameBrand from 'src/components/NameBrand.vue';
+import worker from '../services/IFWorker'
+import { colors } from 'quasar'
+const { getPaletteColor, hexToRgb, rgbToHex } = colors
 
 const leftDrawerOpen = ref(false)
+
+const showSetServerDialog = ref(false)
 
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value
@@ -123,6 +147,40 @@ const links = [
   { type: 'item', icon: 'monitor', text: 'Monitor', href: '#/tfmonitor?collection=TFQKD_TDC' },
   { type: 'separator' },
 ]
+
+const hbDelay = worker.hbDelay
+
+const colorMap = [
+  [-1, hexToRgb(getPaletteColor('grey-8'))],
+  [0, hexToRgb(getPaletteColor('teal'))],
+  [20, hexToRgb(getPaletteColor('teal'))],
+  [100, hexToRgb(getPaletteColor('orange'))],
+  [200, hexToRgb(getPaletteColor('deep-orange'))],
+  [500, hexToRgb(getPaletteColor('red'))],
+]
+const getMixedColor = (color1, value1, color2, value2, value) => {
+  if (value <= value1) return color1
+  if (value >= value2) return color2
+  const getMixedInt = (int1, int2) => {
+    return parseInt((value - value1) * (int2 - int1) / (value2 - value1) + int1)
+  }
+  return {
+    r: getMixedInt(color1.r, color2.r),
+    g: getMixedInt(color1.g, color2.g),
+    b: getMixedInt(color1.b, color2.b),
+  }
+}
+const getPingColor = (delay) => {
+  for (let i = 0; i < colorMap.length; i++) {
+    if (i == 0) continue
+    if (delay > colorMap[i][0]) continue
+    return getMixedColor(colorMap[i - 1][1], colorMap[i - 1][0], colorMap[i][1], colorMap[i][0], delay)
+  }
+  return colorMap[colorMap.length - 1][1]
+}
+const hbColor = computed(() => {
+  return rgbToHex(getPingColor(hbDelay.value))
+})
 
 // const buttons1 = [
 //   { text: 'About' },

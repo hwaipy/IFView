@@ -1,4 +1,3 @@
-// const WebSocket = require('isomorphic-ws');
 import WebSocket from 'isomorphic-ws'
 
 const Message = function () {

@@ -257,7 +257,7 @@ function plot(result, append) {
     Plotly.redraw(div)
   }
   var plotStop = new Date().getTime()
-  console.log('plot done in ' + (plotStop - plotStart) + ' ms')
+  // console.log('plot done in ' + (plotStop - plotStart) + ' ms')
 }
 
 async function updateReports(result, histograms) {

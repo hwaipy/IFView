@@ -11,14 +11,12 @@ export default async ({ app, router }) => {
 
   // 显示进度条时机
   router.beforeEach((to, from, next) => {
-    console.log('loading');
     LoadingBar.start()  // 开始显示进度条
     // Loading.show()
     next()
   })
 
   router.afterEach(() => {
-    console.log('loaded');
     LoadingBar.stop()   // 停止进度条
     // Loading.hide()
   })
