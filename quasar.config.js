@@ -10,7 +10,7 @@
 
 
 const { configure } = require('quasar/wrappers');
-
+const compression = require('vite-plugin-compression');
 
 module.exports = configure(function (/* ctx */) {
   return {
@@ -26,9 +26,7 @@ module.exports = configure(function (/* ctx */) {
     ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
-    css: [
-      'app.scss'
-    ],
+    css: ["app.scss", "bootstrap.min.css", "main.css"],
 
     // https://github.com/quasarframework/quasar/tree/dev/extras
     extras: [
@@ -42,6 +40,7 @@ module.exports = configure(function (/* ctx */) {
 
       'roboto-font', // optional, you are not bound to it
       'material-icons', // optional, you are not bound to it
+      "bootstrap-icons",
     ],
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
@@ -75,8 +74,15 @@ module.exports = configure(function (/* ctx */) {
           eslint: {
             lintCommand: 'eslint "./**/*.{js,mjs,cjs,vue}"'
           }
-        }, { server: false }]
-      ]
+        }, { server: false }],
+        compression({
+          verbose: true, // 是否显示详细信息
+          disable: false, // 是否禁用
+          threshold: 10240, // 只有在此大小以上的文件才会被压缩
+          algorithm: 'gzip', // 使用的压缩算法
+          ext: '.gz', // 输出文件的扩展名
+        }),
+      ],
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer

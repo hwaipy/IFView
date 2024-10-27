@@ -12,13 +12,13 @@
           style="margin-top: 0px; margin-bottom: 8px; padding-left: 4px; padding-right: 4px; margin-right: 12px">
           <q-toggle v-model="tdcToggle.value" @update:model-value="(v) => tdcToggle.set(v)" size="xs" />
           <div class="q-pa-md row histogram-info-label" style="font-weight: bold; margin-right: 8px;">
-            <div class="col self-center"> {{ tdcToggle.name }} </div>
+            <div class="self-center"> {{ tdcToggle.name }} </div>
           </div>
         </q-card>
         <q-card class="row items-center justify-between"
           style="margin-top: 0px; margin-bottom: 8px; padding-left: 4px; padding-right: 4px; margin-right: 12px">
           <div class="q-pa-md row histogram-info-label" style="font-weight: bold; margin-right: 8px;">
-            <div class="col self-center"> Latest data: {{ latestTDCDataTime }} </div>
+            <div class="self-center"> Latest data: {{ latestTDCDataTime }} </div>
           </div>
         </q-card>
       </q-card-section>
@@ -40,50 +40,50 @@
               <q-item-label class="text-body2 text-weight-bold" style="margin-top: 13px; margin-left: 4px;">
                 {{ info.description }}
               </q-item-label>
-              <div class="col text-caption"
-                style="display: flex; justify-content: right; margin-top: 13px; margin-right: 8px;">
+              <div class="text-caption ms-auto col"
+                style="display: flex; justify-content: right; margin-top: 13px; margin-right: 8px; padding-right: 0px">
                 {{ info.deviceID + '-' + info.ch }}
               </div>
             </q-card-section>
             <q-separator />
             <q-card-section class="row" style="padding-bottom: 8px; padding-right: 0px;">
-              <div class="col row">
+              <div class="col row bsp">
                 <div class="device-display-unit column" style="margin-right: 8px">
-                  <div class="col row">
+                  <div class="col row bsp">
                     <div class="" style="margin-left: 6px; margin-right: 4px; margin-top: 18px; font-size: 14px">Vset
                     </div>
                     <q-input v-model="info.VSetDisplay" class="device-info-main" input-class="text-right" square
-                      borderless style="width: 114px; font-size: 36px; margin-top: 4px;" mask="##.###"
+                      borderless style="width: 120px; font-size: 36px; margin-top: 4px;" mask="##.###"
                       @focus="onVSetFocus(info)" @blur="onVSetBlur(info)" @keyup.enter="onVSetEnter(info)"
                       @keyup.esc="onVSetEscape(info)" :ref="(el) => info.element = el"
                       @keydown.arrow-up="(e) => onVSetAdjust(info, e, true)"
                       @keydown.arrow-down="(e) => onVSetAdjust(info, e, false)"></q-input>
                     <div class="" style="margin-left: 4px; margin-right: 0px; margin-top: 13px; font-size: 18px">V</div>
                   </div>
-                  <div class="col row">
+                  <div class="col row bsp" style="padding-left: 0px; padding-right: 0px;">
                     <div class="" style="margin-left: 6px; margin-right: 4px; margin-top: 10px; font-size: 14px">Vact
                     </div>
                     <q-input v-model="info.VAct" class="device-info-second" input-class="text-right" square borderless
-                      readonly style="width: 114px; font-size: 20px; margin-top: 8px;"></q-input>
-                    <div class="" style="margin-left: 4px; margin-right: 0px; margin-top: 6px; font-size: 18px">V</div>
+                      readonly style="width: 120px; font-size: 20px; margin-top: 8px;"></q-input>
+                    <div class="" style="margin-left: 4px; margin-right: 0px; margin-top: 9px; font-size: 18px">V</div>
                   </div>
                 </div>
               </div>
-              <div class="col row">
+              <div class="col row bsp">
                 <div class="device-display-unit column" style="margin-right: 8px">
-                  <div class="col row">
+                  <div class="col row bsp">
                     <div class="" style="margin-left: 6px; margin-right: 4px; margin-top: 18px; font-size: 14px">Iact
                     </div>
                     <q-input v-model="info.IAct" class="device-info-main" input-class="text-right" square borderless
-                      readonly style="width: 114px; font-size: 36px; margin-top: 4px;"></q-input>
+                      readonly style="width: 120px; font-size: 36px; margin-top: 4px;"></q-input>
                     <div class="" style="margin-left: 4px; margin-right: 0px; margin-top: 13px; font-size: 18px">A</div>
                   </div>
-                  <div class="col row">
+                  <div class="col row bsp">
                     <div class="" style="margin-left: 6px; margin-right: 4px; margin-top: 10px; font-size: 14px">Ilim
                     </div>
                     <q-input v-model="info.ILim" class="device-info-second" input-class="text-right" square borderless
-                      readonly style="width: 114px; font-size: 20px; margin-top: 8px;"></q-input>
-                    <div class="" style="margin-left: 4px; margin-right: 0px; margin-top: 6px; font-size: 18px">A</div>
+                      readonly style="width: 120px; font-size: 20px; margin-top: 8px;"></q-input>
+                    <div class="" style="margin-left: 4px; margin-right: 0px; margin-top: 9px; font-size: 18px">A</div>
                   </div>
                 </div>
               </div>
@@ -110,7 +110,7 @@
             </q-card-section>
             <q-separator />
             <q-card-section class="row" style="padding-bottom: 8px;">
-              <div class="col row">
+              <div class="col row bsp">
                 <div style="font-size: 30px; width: 175px; text-align: center; margin-right: 20px;">
                   {{ info.powers[0]
                   }}</div>
@@ -364,11 +364,11 @@ onUnmounted(() => {
   gap: 10px
 
 .chart-card
-  min-width: 392px
-  max-width: 392px
+  min-width: 400px
+  max-width: 400px
 
 .device-display-unit
-  width: 196px
+  width: 200px
   height: 70px
   border: 4px ridge rgba(171, 170, 150, .6)
   background-color: rgba(231, 230, 230, .6)
@@ -379,4 +379,21 @@ onUnmounted(() => {
   background: rgb(133,135,150)
 :deep(.bg-card-head)
   background: rgb(244,245,248)
+
+.bsp
+  padding-left: 0px
+  padding-right: 0px
+
+:deep(.q-field__inner)
+  padding-left: 0px
+  padding-right: 0px
+
+:deep(.q-field__control-container)
+  padding-left: 0px
+  padding-right: 0px
+
+:deep(.q-field__native)
+  padding-top: 0px
+  padding-bottom: 0px
+
 </style>

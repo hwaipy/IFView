@@ -2,7 +2,7 @@
   <q-layout view="lHh lpR fFf" class="bg-grey-1">
     <q-header elevated class="bg-white text-grey-8 q-py-xs" height-hint="58">
       <q-toolbar>
-        <q-btn flat dense round @click="toggleLeftDrawer" aria-label="Menu" icon="menu" />
+        <q-btn flat dense round @click="toggleLeftDrawer" aria-label="Menu" icon="bi-justify" style="padding-left: 0px; padding-right: 0px" />
 
         <div style="width: 20px"></div>
         <!-- <PingDot /> -->
@@ -63,7 +63,7 @@
         <q-list padding>
           <div v-for="link in links" :key="link.text">
             <div v-if="link.type == 'item'">
-              <q-item v-ripple clickable :href="link.href">
+              <q-item v-ripple clickable :href="link.href" style="text-decoration: none">
                 <q-item-section avatar>
                   <q-icon color="white" :name="link.icon" />
                 </q-item-section>
@@ -119,34 +119,84 @@
       </q-card-actions>
     </q-card>
   </q-dialog>
+  <q-dialog v-model="showLoadingApplicationConfigErrorDialog">
+    <q-card>
+      <q-card-section class="row">
+        <q-icon color="red" size="28px" :name="'warning'" style="padding-right: 8px" />
+        <div class="text-h5" style="margin-left: 10px">Error</div>
+      </q-card-section>
+      <q-card-section class="q-pt-none">
+        <div v-html="loadingApplicationConfigErrorInfo"></div>
+      </q-card-section>
+      <q-card-actions align="right">
+        <q-btn flat label="OK" color="primary" v-close-popup />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import PingDot from 'src/components/PingDot.vue';
+import { ref, computed, onMounted } from 'vue'
 import NameBrand from 'src/components/NameBrand.vue';
 import worker from '../services/IFWorker'
 import { colors } from 'quasar'
 const { getPaletteColor, hexToRgb, rgbToHex } = colors
 
 const leftDrawerOpen = ref(false)
-
 const showSetServerDialog = ref(false)
+const showLoadingApplicationConfigErrorDialog = ref(false)
+const applicationConfigFileURL = ref('/config.json')
+const loadingApplicationConfigErrorInfo = ref('')
 
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
 
-const links = [
-  { type: 'item', icon: 'speed', text: 'Dashboard', href: '#/dashboard' },
+const links = ref([
+  { type: 'item', icon: 'bi-speedometer2', text: 'Dashboard', href: '#/dashboard' },
   { type: 'separator' },
   { type: 'title', text: 'TF-QKD' },
-  { type: 'item', icon: 'timeline', text: 'TDCViewer', href: '#/tdcviewer?tdcservice=TFTDCServer&collection=TFQKD_TDC' },
-  { type: 'item', icon: 'leaderboard', text: 'Encoding', href: '#/tdcencoding?collection=TFQKD_TDC' },
-  { type: 'item', icon: 'settings', text: 'Config', href: '#/config?tdcservice=TFTDCServer&collection=TFQKD_TDC' },
-  { type: 'item', icon: 'monitor', text: 'Monitor', href: '#/tfmonitor?collection=TFQKD_TDC' },
+  { type: 'item', icon: 'bi-graph-up', text: 'TDCViewer', href: '#/tdcviewer?tdcservice=TFTDCServer&collection=TFQKD_TDC' },
+  { type: 'item', icon: 'bi-grid-3x2-gap', text: 'Encoding', href: '#/tdcencoding?collection=TFQKD_TDC' },
+  { type: 'item', icon: 'bi-gear', text: 'Config', href: '#/config?tdcservice=TFTDCServer&collection=TFQKD_TDC' },
+  { type: 'item', icon: 'bi-display', text: 'Monitor', href: '#/tfmonitor?collection=TFQKD_TDC' },
   { type: 'separator' },
-]
+])
+
+onMounted(async () => {
+  await loadApplicationConfig();
+})
+
+async function loadApplicationConfig() {
+  let response
+  try {
+    response = await fetch(applicationConfigFileURL.value);
+    if (response == undefined || !response.ok) {
+      const link = `<a href="${applicationConfigFileURL.value}" target="_blank">${applicationConfigFileURL.value}</a>`;
+      loadingApplicationConfigErrorInfo.value = `The application config file ${link} is not valid.`
+      showLoadingApplicationConfigErrorDialog.value = true
+      return
+    }
+  } catch (error) {
+    loadingApplicationConfigErrorInfo.value = 'Error occurs during fetching the url: ' + applicationConfigFileURL.value
+    showLoadingApplicationConfigErrorDialog.value = true
+    return
+  }
+  try {
+    const data = await response.json();
+    const applications = data["Applications"]
+    console.log(applications);
+
+  } catch (error) {
+    loadingApplicationConfigErrorInfo.value = 'Error occurs during parsing the config file: ' + error
+    showLoadingApplicationConfigErrorDialog.value = true
+    return
+  }
+}
+
+function onLoadingApplicationConfigError(error) {
+
+}
 
 const hbDelay = worker.hbDelay
 
@@ -214,16 +264,11 @@ const hbColor = computed(() => {
     max-width: 60px
     width: 100%
 
-  &__drawer-footer-link
-    color: inherit
-    text-decoration: none
-    font-weight: 500
-    font-size: .75rem
-
-    &:hover
-      color: #000
-
 :deep(aside)
   position: fixed
 
-  </style>
+:deep(.q-btn__content)
+  padding-left: 0px
+  padding-right: 0px
+
+</style>

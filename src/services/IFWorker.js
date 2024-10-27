@@ -11,25 +11,32 @@ const wsMap = {
   'localhost:9000': 'code.qpqi.group:1063',
   'localhost:9001': 'code.qpqi.group:1063',
   '192.168.25.5:5080': '192.168.25.5:1063',
-  'iflab.qpqi.group': 'code.qpqi.group:1063',
+}
+const wssMap = {
+  'iflab.qpqi.group': 'iflab.qpqi.group',
 }
 
 // const currentDomain = ((window.location.hostname === 'localhost') || (window.location.hostname === '172.16.60.2')) ? '172.16.60.200' : window.location.hostname
 const currentHost = window.location.host
 
-let plainWorker = undefined
+let worker = undefined
 // let secureWorker = undefined
 
 function IFWorkerInstance(ssl) {
-  if (ssl === undefined) ssl = false; //(currentDomain === 'interactionfree.cn')
+  if (worker == undefined) {
+    if (ssl === undefined) ssl = (window.location.protocol == 'https:'); //(currentDomain === 'interactionfree.cn')
+    if (ssl) worker = IFWorker("wss://" + wssMap[currentHost] + "/ws/")
+    else worker = IFWorker("ws://" + wsMap[currentHost] + "/ws/")
+  }
   // if (ssl) {
   //     if (!secureWorker) secureWorker = IFWorker("wss://" + currentDomain + ":" + sslPortMap[currentDomain] + "/ws/")
   //     return secureWorker
   // } else {
-  if (!plainWorker) plainWorker = IFWorker("ws://" + wsMap[currentHost] + "/ws/")
+  // if (!plainWorker) plainWorker = IFWorker("wss://" + wsMap[currentHost] + "/ws/")
   // if (!plainWorker) plainWorker = IFWorker("ws://" + 'code.qpqi.group:1063' + '/ws/')
-  return plainWorker
+  // return plainWorker
   // }
+  return worker
 }
 
 export default IFWorkerInstance()

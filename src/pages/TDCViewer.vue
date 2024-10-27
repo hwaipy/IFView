@@ -2,7 +2,7 @@
   <q-splitter v-model="splitterModel" unit="px" separator-style="background-color: #FFFFFF00" disable>
     <template v-slot:before>
       <q-card class="channel-card" bordered>
-        <q-item class="bg-card-head">
+        <q-item class="bg-card-head" style="padding-left: 16px">
           <q-item-section>
             <q-item-label class="text-h6">Channels</q-item-label>
           </q-item-section>
@@ -10,12 +10,12 @@
         <q-separator />
         <q-card-section horizontal>
           <q-card-section>
-            <q-card v-for="channelInfo in channelInfos" :key="channelInfo.i" class="row col channel-item">
+            <q-card v-for="channelInfo in channelInfos" :key="channelInfo.i" class="row channel-item">
               <div class="channel-info-histogram-indicator"
                 :style="{ backgroundColor: getPaletteColor(getChannelIndicatorColor(channelInfo)), borderRadius: '0px' }">
               </div>
-              <div class="row channel-info-label" style="font-weight: bold" @click="toggleChannelStatus(channelInfo.i)">
-                <div class="col self-center">CH{{ ('0' + channelInfo.i).slice(-2,) }}</div>
+              <div class="row channel-info-label" style="font-weight: bold; margin-left: 6px; margin-right: 6px; width: 46px" @click="toggleChannelStatus(channelInfo.i)">
+                <div class="self-center">CH{{ ('0' + channelInfo.i).slice(-2,) }}</div>
               </div>
               <q-input v-model="channelInfo.formattedCount" class="channel-info-input channel-info-input-count"
                 input-class="text-right" square outlined readonly>
@@ -23,16 +23,16 @@
                   {{ channelInfo.formattedCount }}
                 </q-tooltip>
               </q-input>
-              <div class="row channel-info-label">
-                <div class="col self-center">@</div>
+              <div class="row channel-info-label" style="margin-left: 6px; margin-right: 6px">
+                <div class="self-center">@</div>
               </div>
               <q-input v-model="channelInfo.formattedDelay" :key="'delay-input-' + channelInfo.i"
                 @focus="onDelayEditorFocus(channelInfo.i)" @blur="onDelayEditorBlur(channelInfo.i)"
                 @keyup.enter="onDelayEditorEnter(channelInfo.i)" @keyup.esc="onDelayEditorEscape(channelInfo.i)"
                 :ref="(el) => channelInfo.element = el" input-class="text-right"
                 class="channel-info-input channel-info-input-delay" square outlined></q-input>
-              <div class="row channel-info-label">
-                <div class="col self-center">ns</div>
+              <div class="row channel-info-label" style="margin-left: 6px; margin-right: 6px">
+                <div class="self-center">ns</div>
               </div>
             </q-card>
           </q-card-section>
@@ -50,7 +50,7 @@
             </div>
             <div class="col text-red" v-if="fetchTimeDelta > 3000"
               style="display: flex; justify-content: right; margin-top: 12px;">
-              <q-icon color="red" size="xs" :name="'warning'" style="padding-right: 8px;" />
+              <q-icon color="red" size="xs" :name="'warning'" style="padding-right: 8px; padding-top: 3px" />
               The most recent data was fetched {{ numberFormat.format(parseInt(fetchTimeDelta / 1000)) }} s ago.
             </div>
           </div>
@@ -58,15 +58,14 @@
         <q-separator v-if="histogramMode == 'review'" />
         <q-card-section v-if="histogramMode == 'review'" style="height: 48px; padding-left: 16px; padding-top: 0px;">
           <div class="row">
-            <div class="" style="margin-top: 14px; font-weight: bold;"> Review from
-            </div>
+            <div class="" style="margin-top: 14px; font-weight: bold; margin-right: 6px"> Review from </div>
             <q-input class="channel-info-input channel-info-input-review" v-model="reviewTimeBeginModel.formatted"
               square outlined input-class="text-center" @blur="onReviewTimeBeginEditted(true)"
               @keyup.enter="onReviewTimeBeginEditted(true)"
               @keyup.esc="reviewTimeBeginModel.formatted = ''; onReviewTimeBeginEditted(true);"
               @update:model-value="onReviewTimeBeginEditted(false)" :error="!reviewTimeBeginModel.valid"
               error-message="" no-error-icon></q-input>
-            <div class="" style="margin-top: 14px; font-weight: bold;"> to </div>
+            <div class="" style="margin-top: 14px; font-weight: bold; margin-left: 6px; margin-right: 6px;"> to </div>
             <q-input class="channel-info-input channel-info-input-review" v-model="reviewTimeEndModel.formatted" square
               outlined input-class="text-center" @blur="onReviewTimeEndEditted(true)"
               @keyup.enter="onReviewTimeEndEditted(true)"
@@ -92,9 +91,9 @@
           <q-card-section>
             <div class="row">
               <q-card v-for="histogramInfo in histogramInfos" :key="histogramInfo.name"
-                class="row histogram-info-item items-center justify-between">
+                class="row histogram-info-item items-center justify-between" style="padding-left: 6px; padding-right: 0px; margin-right: 12px">
                 <div class="q-pa-md row histogram-info-label" style="font-weight: bold;">
-                  <div class="col self-center">{{ histogramInfo.label }}</div>
+                  <div class="self-center">{{ histogramInfo.label }}</div>
                 </div>
                 <div class="q-pa-md col histogram-info-label">
                   <q-input class="channel-info-input" v-model="histogramInfo.formattedValue" square outlined
@@ -105,7 +104,7 @@
                     input-class="text-right" :readonly="!histogramConfigEditable"></q-input>
                 </div>
                 <div v-if="histogramInfo.tail" class="q-pa-md row histogram-info-label" style="padding-right: 4px;">
-                  <div class="col self-center">{{ histogramInfo.tail }}</div>
+                  <div class="self-center">{{ histogramInfo.tail }}</div>
                 </div>
               </q-card>
             </div>
@@ -123,8 +122,8 @@
             <q-card v-for="detailedInfo in detailedInfos" :key="detailedInfo.key"
               class="row items-center justify-between"
               style="margin-top: 8px; margin-bottom: 0px; padding-left: 4px; padding-right: 4px; margin-right: 12px">
-              <div class="q-pa-md row histogram-info-label" style="font-weight: bold; margin-right: 8px;">
-                <div class="col self-center"> {{ detailedInfo.name }} </div>
+              <div class="q-pa-md row histogram-info-label" style="font-weight: bold; margin-right: 4px;">
+                <div class="self-center"> {{ detailedInfo.name }} </div>
                 <q-tooltip> {{ detailedInfo.expression }} </q-tooltip>
               </div>
               <q-input v-model="detailedInfo.result" class="channel-info-input channel-info-input-detail" square
@@ -141,7 +140,7 @@
               <q-btn round color="btn-negative" icon="add" size="sm" style="height: 10px; width: 10px;"
                 @click="addingDetailedInfo = true" unelevated />
             </div>
-            <q-card v-if="addingDetailedInfo" class="row add-detailed-info-item items-center justify-between">
+            <q-card v-if="addingDetailedInfo" class="row add-detailed-info-item items-center justify-between" style="padding-left: 6px;">
               <q-btn round color="btn-negative" icon="folder_special" size="sm" style="height: 10px; width: 10px;"
                 unelevated>
                 <q-tooltip> Preset Configs. </q-tooltip>
@@ -156,14 +155,14 @@
                 </q-menu>
               </q-btn>
               <div class="q-pa-md row histogram-info-label" style="padding-left: 10px;">
-                <div class="col self-center">Name:</div>
+                <div class="self-center">Name:</div>
               </div>
               <div class="q-pa-md histogram-info-label">
                 <q-input class="channel-info-input" v-model="addingDetailedInfoPanelName" square outlined
                   style="width: 80px"></q-input>
               </div>
               <div class="q-pa-md row histogram-info-label" style="padding-left: 10px;">
-                <div class="col self-center">Express:</div>
+                <div class="self-center">Express:</div>
               </div>
               <div class="q-pa-md histogram-info-label">
                 <q-input class="channel-info-input" v-model="addingDetailedInfoPanelExpression" square outlined
@@ -192,7 +191,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute } from 'vue-router'
-import { colors, LoadingBar } from 'quasar'
+import { colors } from 'quasar'
 import worker from '../services/IFWorker'
 import { Histogram, TDCStorageStreamFetcher, linspace, parseDateString } from '../services/IFExp'
 import moment from 'moment';
@@ -200,7 +199,6 @@ import Plotly from 'plotly.js-dist-min'
 const { getPaletteColor } = colors
 const route = useRoute()
 const numberFormat = new Intl.NumberFormat('ja-JP')
-import loadingBar from 'src/boot/loading-bar';
 
 const parameters = route.query
 const tdcService = parameters['tdcservice'] || null
@@ -266,7 +264,7 @@ const editingDetailedInfos = ref(false)
 
 const fetchTimeDelta = ref(-1)
 
-const splitterModel = ref(290)
+const splitterModel = ref(364)
 
 const TDCHistograms = new Array(channelCount)
 for (var i = 0; i < TDCHistograms.length; i++) {
@@ -330,21 +328,14 @@ function onReviewTimeEndEditted(finished) {
   if (finished && reviewTimeEndModel.value.valid) reviewTimeEndModel.value.formatted = (reviewTimeEndModel.value.isToNow ? 'NOW' : (reviewTimeEndModel.value.value >= 0 ? moment(reviewTimeEndModel.value.value).format(dateString) : ''));
 }
 function onUpdateReview() {
-  // reviewDataPreparing.value = true
-  // const beginTime = new Date(reviewTimeBeginModel.value.value)
-  // const endTime = reviewTimeEndModel.value.isToNow ? new Date() : new Date(reviewTimeEndModel.value.value)
-  // const isToNow = reviewTimeEndModel.value.isToNow
-  // const valid = reviewTimeBeginModel.value.valid && reviewTimeEndModel.value.valid
-  // histogramConfigEditable.value = isToNow
-  // if (valid) fetcher.updateIntegralData(beginTime, endTime, isToNow)
-  // reviewDataPreparing.value = false
-  LoadingBar.setDefaults({
-    color: 'blue',  // 设置进度条颜色
-    size: '40px',    // 设置进度条高度
-    position: 'bottom' // 设置进度条显示在顶部
-  })
-  LoadingBar.start()
-  LoadingBar.increment(20)
+  reviewDataPreparing.value = true
+  const beginTime = new Date(reviewTimeBeginModel.value.value)
+  const endTime = reviewTimeEndModel.value.isToNow ? new Date() : new Date(reviewTimeEndModel.value.value)
+  const isToNow = reviewTimeEndModel.value.isToNow
+  const valid = reviewTimeBeginModel.value.valid && reviewTimeEndModel.value.valid
+  histogramConfigEditable.value = isToNow
+  if (valid) fetcher.updateIntegralData(beginTime, endTime, isToNow)
+  reviewDataPreparing.value = false
 }
 
 function onSelectPreSettedDetailedInfo(addingDetailedInfoPreset) {
@@ -549,7 +540,7 @@ function formatDelay(delay) {
     padding-bottom: 0px
 
 .channel-item
-  width: 255px
+  width: 328px
   margin-bottom: 8px
   overflow: hidden
 
@@ -557,18 +548,22 @@ function formatDelay(delay) {
   height: 32px
   margin-top: 2px
   margin-bottom: 2px
+  font-size: 1.25rem
   :deep(.q-field__control)
     height: 32px
     padding-left: 6px
     padding-right: 6px
+  :deep(.q-field__native)
+    padding-top: 0px
+    padding-bottom: 0px
 
 .channel-info-input-count
   :deep(.q-field__control)
-    width: 90px
+    width: 120px
 
 .channel-info-input-delay
   :deep(.q-field__control)
-    width: 70px
+    width: 90px
 
 .channel-info-label
   height: 36px
@@ -586,7 +581,7 @@ function formatDelay(delay) {
     padding-bottom: 0px
 
 .histogram-info-item
-  width: 160px
+  width: 180px
   margin-bottom: 8px
   padding-left: 4px
   margin-right: 12px
@@ -620,7 +615,7 @@ function formatDelay(delay) {
   margin-left: 10px
   margin-right: 10px
   :deep(.q-field__control)
-    width: 180px
+    width: 220px
   :deep(.q-field__bottom)
     width: 0px
     height: 0px
@@ -632,5 +627,19 @@ function formatDelay(delay) {
   background: rgb(133,135,150)
 :deep(.bg-card-head)
   background: rgb(244,245,248)
+
+:deep(.row)
+  margin-left: 0px
+  margin-right: 0px
+  padding-left: 0px
+  padding-right: 0px
+
+:deep(.q-field__inner)
+  padding-left: 0px
+  padding-right: 0px
+
+:deep(.q-splitter__panel)
+  padding-left: 0px
+  padding-right: 0px
 
 </style>

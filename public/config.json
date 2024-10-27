@@ -1,0 +1,46 @@
+{
+  "Applications2": [
+    {
+      "type": "application/page",
+      "name": "dashboard",
+      "label": "DashBoard",
+      "icon": "speed",
+      "href": "#/dashboard"
+    },
+    {
+      "type": "application/set",
+      "name": "tf-qkd",
+      "label": "TF-QKD",
+      "applications": [
+        {
+          "type": "application/page",
+          "name": "tdcviewer",
+          "label": "TDCViewer",
+          "icon": "timeline",
+          "href": "#/tdcviewer?tdcservice=TFTDCServer&collection=TFQKD_TDC"
+        },
+        {
+          "type": "application/page",
+          "name": "encoding",
+          "label": "Encoding",
+          "icon": "leaderboard",
+          "href": "#/tdcencoding?collection=TFQKD_TDC"
+        },
+        {
+          "type": "application/page",
+          "name": "config",
+          "label": "Config",
+          "icon": "settings",
+          "href": "#/config?tdcservice=TFTDCServer&collection=TFQKD_TDC"
+        },
+        {
+          "type": "application/page",
+          "name": "monitor",
+          "label": "Monitor",
+          "icon": "monitor",
+          "href": "#/tfmonitor?collection=TFQKD_TDC"
+        }
+      ]
+    }
+  ]
+}

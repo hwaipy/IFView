@@ -17,16 +17,15 @@
     <q-separator v-if="histogramMode == 'review'" />
     <q-card-section v-if="histogramMode == 'review'" style="height: 48px; padding-left: 16px; padding-top: 0px;">
       <div class="row">
-        <div class="" style="margin-top: 14px; font-weight: bold;"> Review from
-        </div>
+        <div class="" style="margin-top: 14px; font-weight: bold; margin-right: 6px"> Review from </div>
         <q-input class="channel-info-input channel-info-input-review" v-model="reviewTimeBeginModel.formatted" square
           outlined input-class="text-center" @blur="onReviewTimeBeginEditted(true)"
           @keyup.enter="onReviewTimeBeginEditted(true)"
           @keyup.esc="reviewTimeBeginModel.formatted = ''; onReviewTimeBeginEditted(true);"
           @update:model-value="onReviewTimeBeginEditted(false)" :error="!reviewTimeBeginModel.valid" error-message=""
           no-error-icon></q-input>
-        <div class="" style="margin-top: 14px; font-weight: bold;"> to </div>
-        <q-input class="channel-info-input channel-info-input-review" v-model="reviewTimeEndModel.formatted" square
+          <div class="" style="margin-top: 14px; font-weight: bold; margin-left: 6px; margin-right: 6px;"> to </div>
+          <q-input class="channel-info-input channel-info-input-review" v-model="reviewTimeEndModel.formatted" square
           outlined input-class="text-center" @blur="onReviewTimeEndEditted(true)"
           @keyup.enter="onReviewTimeEndEditted(true)"
           @keyup.esc="reviewTimeEndModel.formatted = ''; onReviewTimeEndEditted(true);"
@@ -59,10 +58,9 @@
     </q-card-section>
     <q-separator />
     <q-card-section style="padding-top: 0px; padding-bottom: 8px">
-      <div class="column">
-        <q-card v-for="reportInfo in reportInfos" :key="reportInfo.key" class="col row"
-          style="margin-top: 8px; margin-bottom: 0px; padding-left: 4px; padding-right: 4px; margin-right: 12px; width: 340px">
-          <div class="q-pa-md row histogram-info-label" style="font-weight: bold; margin-right: 8px; width: 200px">
+        <q-card v-for="reportInfo in reportInfos" :key="reportInfo.key" class="row"
+          style="margin-top: 8px; margin-bottom: 0px; padding-left: 4px; padding-right: 4px; margin-right: 12px; width: 410px">
+          <div class="q-pa-md row histogram-info-label" style="font-weight: bold; margin-right: 8px; width: 270px">
             <div class="col self-center text-right"> {{ reportInfo.title + ': ' }} </div>
           </div>
           <q-input v-model="reportInfo.value" class="channel-info-input" square outlined readonly
@@ -72,7 +70,6 @@
             </q-tooltip>
           </q-input>
         </q-card>
-      </div>
     </q-card-section>
   </q-card>
 </template>
@@ -293,10 +290,14 @@ function calculateRegionValues(result, histograms) {
   height: 32px
   margin-top: 2px
   margin-bottom: 2px
+  font-size: 1.25rem
   :deep(.q-field__control)
     height: 32px
     padding-left: 6px
     padding-right: 6px
+  :deep(.q-field__native)
+    padding-top: 0px
+    padding-bottom: 0px
 
 .histogram-card
   margin: 8px
@@ -318,7 +319,7 @@ function calculateRegionValues(result, histograms) {
   margin-left: 10px
   margin-right: 10px
   :deep(.q-field__control)
-    width: 180px
+    width: 220px
   :deep(.q-field__bottom)
     width: 0px
     height: 0px
@@ -335,4 +336,18 @@ function calculateRegionValues(result, histograms) {
   background: rgb(133,135,150)
 :deep(.bg-card-head)
   background: rgb(244,245,248)
+
+:deep(.row)
+  margin-left: 0px
+  margin-right: 0px
+  padding-left: 0px
+  padding-right: 0px
+
+:deep(.q-field__inner)
+  padding-left: 0px
+  padding-right: 0px
+
+:deep(.q-splitter__panel)
+  padding-left: 0px
+  padding-right: 0px
 </style>
