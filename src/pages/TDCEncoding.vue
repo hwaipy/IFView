@@ -77,15 +77,17 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute } from 'vue-router'
-import worker from '../services/IFWorker'
 import { Histogram, TDCStorageStreamFetcher, linspace, parseDateString } from '../services/IFExp'
 import moment from 'moment';
 import Plotly from 'plotly.js-dist-min'
+import { loadConfig } from 'src/services/Config';
 const route = useRoute()
 const numberFormat = new Intl.NumberFormat('ja-JP')
+let workerTDC = null
 
 const parameters = route.query
 const collection = parameters['collection'] || null
+const isFieldTest = (parameters['fieldtest'] || null) == 'true'
 const reportInfos = ref([
   { key: 'SPER', title: 'Signal Pulse Extinction Ratio', value: '' },
   { key: 'VI', title: 'Vacuum / Z', value: '' },
@@ -172,9 +174,12 @@ for (const markPoint of markPoints) {
 
 const MEHistograms = new Array(MEConfigs.length).fill(0).map(() => { return new Histogram() })
 
-const fetcher = new TDCStorageStreamFetcher(worker, collection, 500, filter, plot, listener)
+let fetcher = null
 
-onMounted(() => {
+onMounted(async () => {
+  const experimentConfig = await loadConfig()
+  workerTDC = experimentConfig.workers.TDC
+  fetcher = new TDCStorageStreamFetcher(workerTDC, collection, 500, filter, plot, listener)
   fetcher.start()
 })
 onUnmounted(() => {

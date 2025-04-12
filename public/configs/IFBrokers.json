@@ -1,0 +1,22 @@
+{
+  "CharlieFriend": {
+    "NONSSL": {
+      "localhost:9000": "ws://iflab.qpqi.group:1263/ws/",
+      "localhost:9001": "ws://iflab.qpqi.group:1263/ws/",
+      "iflab.qpqi.group": "ws://iflab.qpqi.group:1263/ws/"
+    },
+    "SSL": {
+      "iflab.qpqi.group": "wss://iflab.qpqi.group/ws7/"
+    }
+  },
+  "CalvinFriend": {
+    "NONSSL": {
+      "localhost:9000": "ws://iflab.qpqi.group:1163/ws/",
+      "localhost:9001": "ws://iflab.qpqi.group:1163/ws/",
+      "iflab.qpqi.group": "ws://iflab.qpqi.group:1163/ws/"
+    },
+    "SSL": {
+      "iflab.qpqi.group": "wss://iflab.qpqi.group/ws/"
+    }
+  }
+}

@@ -1,7 +1,11 @@
 <template>
   <q-page class="flex q-pa-md">
     <div class="full-page-element">
-      <q-table class="dashboard-table full-page-table" title="IFWorkers" :rows="data" :columns="columns" row-key="name"
+      <q-tabs v-model="tab" class="text-teal" @update:model-value="() => data = []">
+        <q-tab v-for="b in ifbrokers" :name="b.label" :label="b.label" :key="b.label" style="text-transform: none" />
+      </q-tabs>
+
+      <q-table class="dashboard-table full-page-table" :rows="data" :columns="columns" row-key="name"
         :rows-per-page-options="[0]">
         <template v-slot:header="props">
           <q-tr :props="props">
@@ -14,20 +18,40 @@
           </q-tr>
         </template>
       </q-table>
+
     </div>
+
   </q-page>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
-import worker from '../services/IFWorker'
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { loadConfig } from 'src/services/Config';
 
 const fetching = ref(false)
 const data = ref([])
-var dataTime = 0
-var previousDataTime = 0
+const ifbrokers = ref([])
+let dataTime = 0
+let previousDataTime = 0
+let experimentConfig = ref(null)
+const tab = ref('')
+const worker = computed(() => {
+  return experimentConfig.value.workers[tab.value]
+})
 
-onMounted(() => {
+onMounted(async () => {
+  experimentConfig.value = await loadConfig()
+  for (const key in experimentConfig.value.workerNames) {
+    const workerName = experimentConfig.value.workerNames[key]
+    if (!ifbrokers.value.map(item => item.label).includes(workerName)) {
+      ifbrokers.value.push({
+        label: workerName,
+        value: key
+      })
+    }
+  }
+  tab.value = ifbrokers.value[0].label
+  worker.value = experimentConfig.value.workers.Main
   fetching.value = true
   doMetaFetch()
 })
@@ -39,7 +63,7 @@ const doMetaFetch = async () => {
   let previousData = {}
   for (const i of data.value) previousData[formatAddress(i['Address'])] = i
   previousDataTime = dataTime
-  data.value = await worker.listServiceMeta()
+  data.value = await worker.value.listServiceMeta()
   dataTime = new Date().getTime()
   const timeDelta = dataTime - previousDataTime
   for (const dataItem of data.value) {
@@ -153,7 +177,7 @@ function formatDataSize(v, unit, roundLow = false) {
 
 .full-page-table
   position: absolute
-  top: 0px
+  top: 50px
   bottom: 0px
   left: 0px
   right: 0px

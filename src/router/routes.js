@@ -9,6 +9,7 @@ const routes = [
       { path: 'tdcencoding', meta: { title: 'TDCEncoding - InteractionFree View' }, component: () => import('pages/TDCEncoding.vue') },
       { path: 'config', meta: { title: 'Config - InteractionFree View' }, component: () => import('pages/TFConfig.vue') },
       { path: 'tfmonitor', meta: { title: 'Monitor - InteractionFree View' }, component: () => import('pages/TFMonitor.vue') },
+      { path: 'tfaccess', meta: { title: 'Access - InteractionFree View' }, component: () => import('pages/TFAccess.vue') },
     ]
   },
 

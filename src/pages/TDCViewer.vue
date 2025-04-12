@@ -192,18 +192,21 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute } from 'vue-router'
 import { colors } from 'quasar'
-import worker from '../services/IFWorker'
+import { loadConfig } from 'src/services/Config';
 import { Histogram, TDCStorageStreamFetcher, linspace, parseDateString } from '../services/IFExp'
 import moment from 'moment';
 import Plotly from 'plotly.js-dist-min'
 const { getPaletteColor } = colors
 const route = useRoute()
 const numberFormat = new Intl.NumberFormat('ja-JP')
+let workerTDC = null
 
 const parameters = route.query
 const tdcService = parameters['tdcservice'] || null
 const collection = parameters['collection'] || null
 const analyser = parameters['analyser'] || 'MultiHistogram'
+let tdcServer = null
+
 const channelCount = 16
 const channelInfos = ref(Array(channelCount).fill(0).map((_, i) => { return { i: i, count: 0, formattedCount: '', delay: 0, formattedDelay: '', editing: false, isTrigger: false, isSignal: false, element: null } }))
 const histogramInfos = ref([
@@ -284,7 +287,7 @@ function doneDelayEditing(ch, apply, stop) {
   const delay_ps = Number.isNaN(delay_ns) ? 0 : parseInt(delay_ns * 1000)
   if (delay_ps != channelInfos.value[ch].delay && apply) {
     channelInfos.value[ch].delay = delay_ps
-    worker[tdcService].setDelay(ch, channelInfos.value[ch].delay)
+    tdcServer.setDelay(ch, channelInfos.value[ch].delay)
   }
   channelInfos.value[ch].formattedDelay = formatDelay(channelInfos.value[ch].delay)
 }
@@ -303,7 +306,7 @@ function doneHistogramConfigEditing(info, apply, stop) {
     info.value = value
     const config = {}
     config[info.keyInServer] = info.value
-    worker[tdcService].configureAnalyser(analyser, config)
+    tdcServer.configureAnalyser(analyser, config)
   }
   info.formattedValue = info.format(info.value)
 }
@@ -348,13 +351,11 @@ function toggleChannelStatus(ch) {
   if (channelInfos.value[ch].isTrigger) return
   channelInfos.value[ch].isSignal = !channelInfos.value[ch].isSignal
   const signals = channelInfos.value.filter((info) => { return info.isSignal && !info.isTrigger }).map((info) => { return info.i })
-  worker[tdcService].configureAnalyser(analyser, { 'Signals': signals })
+  tdcServer.configureAnalyser(analyser, { 'Signals': signals })
 }
 
 class TDCConfiger {
-  constructor(worker, tdcService) {
-    this.worker = worker
-    this.tdcService = tdcService
+  constructor() {
     this.recentDelays = null
     this.running = false
   }
@@ -369,12 +370,12 @@ class TDCConfiger {
   }
 
   async updateConfigs() {
-    this.recentDelays = await worker[tdcService].getDelays()
+    this.recentDelays = await tdcServer.getDelays()
     for (const i in this.recentDelays) {
       channelInfos.value[i].delay = this.recentDelays[i]
       if (!channelInfos.value[i].editing) channelInfos.value[i].formattedDelay = formatDelay(this.recentDelays[i])
     }
-    const mhResult = await worker[tdcService].getAnalyserConfiguration(analyser)
+    const mhResult = await tdcServer.getAnalyserConfiguration(analyser)
     for (const histogramInfo of histogramInfos.value) {
       histogramInfo.value = mhResult[histogramInfo.keyInServer]
       if (!histogramInfo.editing) histogramInfo.formattedValue = histogramInfo.format(mhResult[histogramInfo.keyInServer])
@@ -388,12 +389,16 @@ class TDCConfiger {
   }
 }
 
-const tdcConfiger = tdcService != null ? new TDCConfiger(worker, tdcService) : null
+const tdcConfiger = tdcService != null ? new TDCConfiger() : null
 const filter = { 'Data.Counter': 1, 'Data.Delays': 1, }
 filter['Data.' + analyser] = 1
-const fetcher = new TDCStorageStreamFetcher(worker, collection, 500, filter, plot, listener)
+let fetcher = null
 
-onMounted(() => {
+onMounted(async () => {
+  const experimentConfig = await loadConfig()
+  workerTDC = experimentConfig.workers.TDC
+  tdcServer = workerTDC[tdcService]
+  fetcher = new TDCStorageStreamFetcher(workerTDC, collection, 500, filter, plot, listener)
   if (tdcConfiger != null) tdcConfiger.start()
   fetcher.start()
 })

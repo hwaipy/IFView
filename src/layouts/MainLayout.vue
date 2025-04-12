@@ -1,8 +1,9 @@
 <template>
-  <q-layout view="lHh lpR fFf" class="bg-grey-1">
+  <q-layout :key="$route.fullPath" view="lHh lpR fFf" class="bg-grey-1">
     <q-header elevated class="bg-white text-grey-8 q-py-xs" height-hint="58">
       <q-toolbar>
-        <q-btn flat dense round @click="toggleLeftDrawer" aria-label="Menu" icon="bi-justify" style="padding-left: 0px; padding-right: 0px" />
+        <q-btn flat dense round @click="toggleLeftDrawer" aria-label="Menu" icon="bi-justify"
+          style="padding-left: 0px; padding-right: 0px" />
 
         <div style="width: 20px"></div>
         <!-- <PingDot /> -->
@@ -119,7 +120,7 @@
       </q-card-actions>
     </q-card>
   </q-dialog>
-  <q-dialog v-model="showLoadingApplicationConfigErrorDialog">
+  <!-- <q-dialog v-model="showLoadingApplicationConfigErrorDialog">
     <q-card>
       <q-card-section class="row">
         <q-icon color="red" size="28px" :name="'warning'" style="padding-right: 8px" />
@@ -132,73 +133,63 @@
         <q-btn flat label="OK" color="primary" v-close-popup />
       </q-card-actions>
     </q-card>
-  </q-dialog>
+  </q-dialog> -->
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import NameBrand from 'src/components/NameBrand.vue';
-import worker from '../services/IFWorker'
 import { colors } from 'quasar'
 const { getPaletteColor, hexToRgb, rgbToHex } = colors
+import { loadConfig } from 'src/services/Config';
+const worker = ref(null)
 
 const leftDrawerOpen = ref(false)
 const showSetServerDialog = ref(false)
-const showLoadingApplicationConfigErrorDialog = ref(false)
-const applicationConfigFileURL = ref('/config.json')
-const loadingApplicationConfigErrorInfo = ref('')
+// const showLoadingApplicationConfigErrorDialog = ref(false)
+// const applicationConfigFileURL = ref(`/configs/${experiment}.json`)
+// const loadingApplicationConfigErrorInfo = ref('')
 
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
 
-const links = ref([
-  { type: 'item', icon: 'bi-speedometer2', text: 'Dashboard', href: '#/dashboard' },
-  { type: 'separator' },
-  { type: 'title', text: 'TF-QKD' },
-  { type: 'item', icon: 'bi-graph-up', text: 'TDCViewer', href: '#/tdcviewer?tdcservice=TFTDCServer&collection=TFQKD_TDC' },
-  { type: 'item', icon: 'bi-grid-3x2-gap', text: 'Encoding', href: '#/tdcencoding?collection=TFQKD_TDC' },
-  { type: 'item', icon: 'bi-gear', text: 'Config', href: '#/config?tdcservice=TFTDCServer&collection=TFQKD_TDC' },
-  { type: 'item', icon: 'bi-display', text: 'Monitor', href: '#/tfmonitor?collection=TFQKD_TDC' },
-  { type: 'separator' },
-])
+const links = ref([])
+// const links = experiment ? ref([
+//   { type: 'item', icon: 'bi-speedometer2', text: 'Dashboard', href: `#/dashboard?experiment=${experiment}` },
+//   { type: 'separator' },
+
+//   { type: 'title', text: 'TF-QKD' },
+//   { type: 'item', icon: 'bi-graph-up', text: 'TDCViewer', href: '#/tdcviewer?tdcservice=TFTDCServer&collection=TFQKD_TDC&mode=basic' },
+//   { type: 'item', icon: 'bi-grid-3x2-gap', text: 'Encoding', href: '#/tdcencoding?collection=TFQKD_TDC' },
+//   { type: 'item', icon: 'bi-gear', text: 'Config', href: '#/config?tdcservice=TFTDCServer&collection=TFQKD_TDC' },
+//   { type: 'item', icon: 'bi-display', text: 'Monitor', href: '#/tfmonitor?collection=TFQKD_TDC' },
+//   { type: 'item', icon: 'bi-wifi', text: 'Access', href: '#/tfaccess' },
+//   { type: 'separator' },
+
+//   // { type: 'title', text: 'TF-QKD-7km' },
+//   // { type: 'item', icon: 'bi-graph-up', text: 'TDCViewer', href: '#/tdcviewer?tdcservice=TFTDCServer&collection=TFQKD_TDC&mode=7km' },
+//   // { type: 'item', icon: 'bi-grid-3x2-gap', text: 'Encoding', href: '#/tdcencoding?collection=TFQKD_TDC&fieldtest=true' },
+//   // { type: 'item', icon: 'bi-gear', text: 'Config', href: '#/config?tdcservice=TFTDCServer&collection=TFQKD_TDC&fieldtest=true' },
+//   // { type: 'item', icon: 'bi-display', text: 'Monitor', href: '#/tfmonitor?collection=TFQKD_TDC&fieldtest=true' },
+//   // { type: 'separator' },
+
+//   // { type: 'title', text: 'TF-QKD-Satellite' },
+//   // { type: 'item', icon: 'bi-graph-up', text: 'TDCViewer', href: '#/tdcviewer?tdcservice=TFTDCServer&collection=TFQKD_TDC&mode=satellite' },
+//   // { type: 'item', icon: 'bi-grid-3x2-gap', text: 'Encoding', href: '#/tdcencoding?collection=TFQKD_TDC&fieldtest=true' },
+//   // { type: 'item', icon: 'bi-gear', text: 'Config', href: '#/config?tdcservice=TFTDCServer&collection=TFQKD_TDC&fieldtest=true' },
+//   // { type: 'item', icon: 'bi-display', text: 'Monitor', href: '#/tfmonitor?collection=TFQKD_TDC&fieldtest=true' },
+//   // { type: 'separator' },
+
+// ])
 
 onMounted(async () => {
-  await loadApplicationConfig();
+  const experimentConfig = await loadConfig()
+  worker.value = experimentConfig.workers.Main
+  links.value = generateApplicationList(experimentConfig.applications);
 })
 
-async function loadApplicationConfig() {
-  let response
-  try {
-    response = await fetch(applicationConfigFileURL.value);
-    if (response == undefined || !response.ok) {
-      const link = `<a href="${applicationConfigFileURL.value}" target="_blank">${applicationConfigFileURL.value}</a>`;
-      loadingApplicationConfigErrorInfo.value = `The application config file ${link} is not valid.`
-      showLoadingApplicationConfigErrorDialog.value = true
-      return
-    }
-  } catch (error) {
-    loadingApplicationConfigErrorInfo.value = 'Error occurs during fetching the url: ' + applicationConfigFileURL.value
-    showLoadingApplicationConfigErrorDialog.value = true
-    return
-  }
-  try {
-    const data = await response.json();
-    const applications = data["Applications"]
-    console.log(applications);
-
-  } catch (error) {
-    loadingApplicationConfigErrorInfo.value = 'Error occurs during parsing the config file: ' + error
-    showLoadingApplicationConfigErrorDialog.value = true
-    return
-  }
-}
-
-function onLoadingApplicationConfigError(error) {
-
-}
-
-const hbDelay = worker.hbDelay
+const hbDelay = computed(() => worker.value?.hbDelay?.value ?? -1)
 
 const colorMap = [
   [-1, hexToRgb(getPaletteColor('grey-8'))],
@@ -232,21 +223,29 @@ const hbColor = computed(() => {
   return rgbToHex(getPingColor(hbDelay.value))
 })
 
-// const buttons1 = [
-//   { text: 'About' },
-//   { text: 'Press' },
-//   { text: 'Copyright' },
-//   { text: 'Contact us' },
-//   { text: 'Creators' },
-//   { text: 'Advertise' },
-//   { text: 'Developers' }
-// ]
-// const buttons2 = [
-//   { text: 'Terms' },
-//   { text: 'Privacy' },
-//   { text: 'Policy & Safety' },
-//   { text: 'Test new features' }
-// ]
+const generateApplicationList = (data) => {
+  const genItem = (d) => {
+    switch (d.type) {
+      case 'application/page':
+        return [{ type: 'item', icon: d.icon, text: d.label, href: d.href }]
+      case 'application/set':
+        const list = [{ type: 'separator' }, { type: 'title', text: d.label }]
+        for (const app of d.applications) {
+          list.push(...genItem(app))
+        }
+        return list
+      default:
+        console.log(`Wrong type: ${d.type}`);
+        return []
+    }
+  }
+  const list = []
+  for (const d of data) {
+    list.push(...genItem(d))
+  }
+  return list
+}
+
 </script>
 
 <style lang="sass" scoped>

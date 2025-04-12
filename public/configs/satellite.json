@@ -1,0 +1,77 @@
+{
+  "IFWorkers": {
+    "Main": "CalvinFriend",
+    "TDC": "CalvinFriend"
+  },
+  "AddressMap": {
+    "NONSSL": {
+      "localhost:9000": "ws://iflab.qpqi.group:1163/ws/",
+      "localhost:9001": "ws://iflab.qpqi.group:1163/ws/",
+      "iflab.qpqi.group": "ws://iflab.qpqi.group:1163/ws/"
+    },
+    "SSL": {
+      "iflab.qpqi.group": "wss://iflab.qpqi.group/ws/"
+    }
+  },
+  "Applications": [
+    {
+      "type": "application/page",
+      "name": "dashboard",
+      "label": "DashBoard",
+      "icon": "speed",
+      "href": "#/dashboard?experiment=satellite"
+    },
+    {
+      "type": "application/set",
+      "name": "tf-qkd",
+      "label": "TF-QKD-Satellite",
+      "applications": [
+        {
+          "type": "application/page",
+          "name": "tdcviewer",
+          "label": "TDCViewer",
+          "icon": "timeline",
+          "href": "#/tdcviewer?experiment=satellite&tdcservice=TFTDCServer&collection=TFQKD_TDC"
+        },
+        {
+          "type": "application/page",
+          "name": "encoding",
+          "label": "Encoding",
+          "icon": "leaderboard",
+          "href": "#/tdcencoding?experiment=satellite&collection=TFQKD_TDC"
+        },
+        {
+          "type": "application/page",
+          "name": "config",
+          "label": "Config",
+          "icon": "settings",
+          "href": "#/config?experiment=satellite&tdcservice=TFTDCServer&collection=TFQKD_TDC"
+        },
+        {
+          "type": "application/page",
+          "name": "monitor",
+          "label": "Monitor",
+          "icon": "monitor",
+          "href": "#/tfmonitor?experiment=satellite&collection=TFQKD_TDC"
+        },
+        {
+          "type": "application/page",
+          "name": "access",
+          "label": "Access",
+          "icon": "bi-wifi",
+          "href": "#/tfaccess?experiment=satellite"
+        }
+      ]
+    }
+  ],
+  "Access": [
+    { "ServiceName": "IF Broker (wrong)", "AccessLab": "192.168.25.5:1061", "AccessCampus": "-", "AccessField": "code.qpqi.group:1161" },
+    { "ServiceName": "Raw Data (datablock) (wrong)", "AccessLab": "192.168.25.5:1000", "AccessCampus": "-", "AccessField": "code.qpqi.group:1001" },
+    { "ServiceName": "[VNC] Alice (wrong)", "AccessLab": "192.168.25.36(:5900)", "AccessCampus": "-", "AccessField": "vnc.qpqi.group:50036" },
+    { "ServiceName": "[VNC] Bob (wrong)", "AccessLab": "192.168.25.37(:5900)", "AccessCampus": "-", "AccessField": "vnc.qpqi.group:50037" },
+    { "ServiceName": "[VNC] Calvin (wrong)", "AccessLab": "192.168.25.38(:5900)", "AccessCampus": "-", "AccessField": "vnc.qpqi.group:50038" },
+    { "ServiceName": "[VNC] Alice Sender (wrong)", "AccessLab": "192.168.25.40(:5900)", "AccessCampus": "-", "AccessField": "vnc.qpqi.group:50040" },
+    { "ServiceName": "[VNC] Bob Sender (wrong)", "AccessLab": "192.168.25.41(:5900)", "AccessCampus": "-", "AccessField": "vnc.qpqi.group:50041" },
+    { "ServiceName": "[VNC] Calvin Server (wrong)", "AccessLab": "192.168.25.5(:5900)", "AccessCampus": "-", "AccessField": "vnc.qpqi.group:50138" }
+  ]
+}
