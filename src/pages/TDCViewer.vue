@@ -14,7 +14,9 @@
               <div class="channel-info-histogram-indicator"
                 :style="{ backgroundColor: getPaletteColor(getChannelIndicatorColor(channelInfo)), borderRadius: '0px' }">
               </div>
-              <div class="row channel-info-label" style="font-weight: bold; margin-left: 6px; margin-right: 6px; width: 46px" @click="toggleChannelStatus(channelInfo.i)">
+              <div class="row channel-info-label"
+                style="font-weight: bold; margin-left: 6px; margin-right: 6px; width: 46px"
+                @click="toggleChannelStatus(channelInfo.i)">
                 <div class="self-center">CH{{ ('0' + channelInfo.i).slice(-2,) }}</div>
               </div>
               <q-input v-model="channelInfo.formattedCount" class="channel-info-input channel-info-input-count"
@@ -91,7 +93,8 @@
           <q-card-section>
             <div class="row">
               <q-card v-for="histogramInfo in histogramInfos" :key="histogramInfo.name"
-                class="row histogram-info-item items-center justify-between" style="padding-left: 6px; padding-right: 0px; margin-right: 12px">
+                class="row histogram-info-item items-center justify-between"
+                style="padding-left: 6px; padding-right: 0px; margin-right: 12px">
                 <div class="q-pa-md row histogram-info-label" style="font-weight: bold;">
                   <div class="self-center">{{ histogramInfo.label }}</div>
                 </div>
@@ -140,7 +143,8 @@
               <q-btn round color="btn-negative" icon="add" size="sm" style="height: 10px; width: 10px;"
                 @click="addingDetailedInfo = true" unelevated />
             </div>
-            <q-card v-if="addingDetailedInfo" class="row add-detailed-info-item items-center justify-between" style="padding-left: 6px;">
+            <q-card v-if="addingDetailedInfo" class="row add-detailed-info-item items-center justify-between"
+              style="padding-left: 6px;">
               <q-btn round color="btn-negative" icon="folder_special" size="sm" style="height: 10px; width: 10px;"
                 unelevated>
                 <q-tooltip> Preset Configs. </q-tooltip>
@@ -255,15 +259,13 @@ function removeDetailedInfoItem(item) {
   }
 }
 function saveDetailedInfoConfig() {
-  if (detailedInfosInited.value) localStorage.tdcviewer_detailedinfos = JSON.stringify(detailedInfos.value.map((_) => { return { name: _.name, expression: _.expression } }))
+  if (detailedInfosInited.value) localStorage.tdcencoding_markpoints = JSON.stringify(detailedInfos.value.map((_) => { return { name: _.name, expression: _.expression } }))
 }
 function loadDetailedInfoConfig() {
-  const infos = localStorage.tdcviewer_detailedinfos
+  const infos = localStorage.tdcencoding_markpoints
   if (infos) for (const info of JSON.parse(infos)) addDetailedInfoItem(info.name, info.expression)
-  detailedInfosInited.value = true
 }
 loadDetailedInfoConfig()
-const editingDetailedInfos = ref(false)
 
 const fetchTimeDelta = ref(-1)
 
@@ -398,7 +400,7 @@ onMounted(async () => {
   const experimentConfig = await loadConfig()
   workerTDC = experimentConfig.workers.TDC
   tdcServer = workerTDC[tdcService]
-  fetcher = new TDCStorageStreamFetcher(workerTDC, collection, 500, filter, plot, listener)
+  fetcher = new TDCStorageStreamFetcher(workerTDC, collection, 200, filter, plot, listener)
   if (tdcConfiger != null) tdcConfiger.start()
   fetcher.start()
 })
@@ -408,7 +410,10 @@ onUnmounted(() => {
 })
 
 function listener(event, arg) {
-  if (event == 'FetchTimeDelta') fetchTimeDelta.value = arg
+  if (event == 'FetchTimeDelta') {
+    fetchTimeDelta.value = arg
+    console.log(arg);
+  }
   else if (event == 'FetchingProgress') reviewUpdateProgress.value = arg
   else if (event == 'HistogramXsMatched') reviewError.value['XsNotMatched'] = !arg
   else if (event == 'TooManyRecords') reviewError.value['tooManyRecords'] = arg

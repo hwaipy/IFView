@@ -33,17 +33,17 @@
             </q-badge>
             <q-tooltip>Notifications</q-tooltip>
           </q-btn> -->
-          <!-- <q-btn round size="10px" flat :style="{ border: '3px solid ' + hbColor }">
-            <q-avatar size="30px">
-              <img src="https://cdn.quasar.dev/img/boy-avatar.png">
-            </q-avatar>
-            <q-tooltip>Account</q-tooltip>
-          </q-btn> -->
+          <q-card flat style="font-size: 24px">
+            Server Time:
+          </q-card>
+          <q-card flat style="font-size: 24px; font-family: monospace;">
+            {{ serverTime }}
+          </q-card>
+          <q-card style="width: 100px;"></q-card>
           <q-btn round :style="{ color: hbColor, backgroundColor: '#E0E0E0', border: '0px solid black' }" icon="cloud"
             size="12px" unelevated @click="showSetServerDialog = false">
             <q-tooltip anchor="center left" self="center right">
-              {{ hbDelay }} ms
-            </q-tooltip>
+              {{ hbDelay < 0 ? 'NA' : hbDelay + ' ms' }} </q-tooltip>
           </q-btn>
         </div>
       </q-toolbar>
@@ -137,7 +137,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import NameBrand from 'src/components/NameBrand.vue';
 import { colors } from 'quasar'
 const { getPaletteColor, hexToRgb, rgbToHex } = colors
@@ -183,13 +183,36 @@ const links = ref([])
 
 // ])
 
+const hbDelay = computed(() => worker.value?.hbDelay?.value ?? -1)
+let updateServerTimeInteval;
+const serverTime = ref('Syncing ...')
+const updateServerTime = () => {
+  const formatDateTime = (date) => {
+    const pad = n => n.toString().padStart(2, '0')  // 补零函数
+    return `
+        ${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}
+        ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}
+      `.replace(/\s+/g, ' ')  // 去除换行空格
+  }
+  const diff = worker.value?.timeDiffToServer?.value ?? NaN
+  if (isNaN(diff)) {
+    serverTime.value = 'Syncing ...'
+    return
+  }
+  const st = new Date(Date.now() + diff);
+  serverTime.value = formatDateTime(st)
+}
+
 onMounted(async () => {
   const experimentConfig = await loadConfig()
   worker.value = experimentConfig.workers.Main
   links.value = generateApplicationList(experimentConfig.applications);
+  updateServerTimeInteval = setInterval(updateServerTime, 100)
 })
 
-const hbDelay = computed(() => worker.value?.hbDelay?.value ?? -1)
+onUnmounted(() => {
+  if (updateServerTimeInteval) clearInterval(updateServerTimeInteval)
+})
 
 const colorMap = [
   [-1, hexToRgb(getPaletteColor('grey-8'))],

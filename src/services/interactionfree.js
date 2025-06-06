@@ -16,8 +16,11 @@ class IFWorkerCore {
     this.timeout = 10000;
     setTimeout(this._timeoutLoop.bind(this), 0);
     setTimeout(this._heartbeatLoop.bind(this), 0);
+    setTimeout(this._timeSyncLoop.bind(this), 0);
     this.running = true;
     this.hbDelay = ref(-1);
+    this.timeSyncs = []
+    this.timeDiffToServer = ref(null);
   }
 
   async connect() {
@@ -194,6 +197,39 @@ class IFWorkerCore {
         this.hbDelay.value = -1;
       }
       await new Promise((r) => setTimeout(r, 3000));
+    }
+  }
+
+  async _timeSyncLoop() {
+    async function doTimeSync(_this) {
+      const t1 = new Date().getTime();
+      const serverTime = (await _this.request("", "time")) * 1000;
+      const t2 = new Date().getTime();
+      return [serverTime - (t2 + t1) / 2, t2, t2 - t1];
+    }
+    while (this.running) {
+      try {
+        const sr = await doTimeSync(this);
+        this.timeSyncs.push(sr);
+        if (this.timeSyncs.length > 100) {
+          this.timeSyncs.shift();
+        }
+        let roundDelay = Infinity;
+        let syncedTime = 0;
+        let timeDiff = NaN;
+        for (let i = 0; i < this.timeSyncs.length; i++) {
+          const sync = this.timeSyncs[i];
+          if (sync[2] < roundDelay) {
+            roundDelay = sync[2];
+            syncedTime = sync[1];
+            timeDiff = sync[0];
+          }
+        }
+        this.timeDiffToServer.value = timeDiff;
+      } catch (error) {
+        console.log(error);
+      }
+      await new Promise((r) => setTimeout(r, 5000));
     }
   }
 

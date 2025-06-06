@@ -1,17 +1,7 @@
 {
   "IFWorkers": {
-    "Main": "CalvinFriend",
-    "TDC": "CalvinFriend"
-  },
-  "AddressMap": {
-    "NONSSL": {
-      "localhost:9000": "ws://iflab.qpqi.group:1163/ws/",
-      "localhost:9001": "ws://iflab.qpqi.group:1163/ws/",
-      "iflab.qpqi.group": "ws://iflab.qpqi.group:1163/ws/"
-    },
-    "SSL": {
-      "iflab.qpqi.group": "wss://iflab.qpqi.group/ws/"
-    }
+    "Main": "Claude",
+    "TDC": "Claude"
   },
   "Applications": [
     {
@@ -65,13 +55,35 @@
     }
   ],
   "Access": [
-    { "ServiceName": "IF Broker (wrong)", "AccessLab": "192.168.25.5:1061", "AccessCampus": "-", "AccessField": "code.qpqi.group:1161" },
-    { "ServiceName": "Raw Data (datablock) (wrong)", "AccessLab": "192.168.25.5:1000", "AccessCampus": "-", "AccessField": "code.qpqi.group:1001" },
-    { "ServiceName": "[VNC] Alice (wrong)", "AccessLab": "192.168.25.36(:5900)", "AccessCampus": "-", "AccessField": "vnc.qpqi.group:50036" },
-    { "ServiceName": "[VNC] Bob (wrong)", "AccessLab": "192.168.25.37(:5900)", "AccessCampus": "-", "AccessField": "vnc.qpqi.group:50037" },
-    { "ServiceName": "[VNC] Calvin (wrong)", "AccessLab": "192.168.25.38(:5900)", "AccessCampus": "-", "AccessField": "vnc.qpqi.group:50038" },
-    { "ServiceName": "[VNC] Alice Sender (wrong)", "AccessLab": "192.168.25.40(:5900)", "AccessCampus": "-", "AccessField": "vnc.qpqi.group:50040" },
-    { "ServiceName": "[VNC] Bob Sender (wrong)", "AccessLab": "192.168.25.41(:5900)", "AccessCampus": "-", "AccessField": "vnc.qpqi.group:50041" },
-    { "ServiceName": "[VNC] Calvin Server (wrong)", "AccessLab": "192.168.25.5(:5900)", "AccessCampus": "-", "AccessField": "vnc.qpqi.group:50138" }
+    {
+      "ServiceName": "IF Broker",
+      "AccessLab": "-",
+      "AccessCampus": "?",
+      "AccessField": "code.qpqi.group:1561"
+    },
+    {
+      "ServiceName": "Raw Data (datablock)",
+      "AccessLab": "-",
+      "AccessCampus": "?",
+      "AccessField": "???code.qpqi.group:1001"
+    },
+    {
+      "ServiceName": "[VNC] Adi",
+      "AccessLab": "-",
+      "AccessCampus": "172.20.9.21:50001",
+      "AccessField": "vnc.qpqi.group:50521"
+    },
+    {
+      "ServiceName": "[VNC] Bruce",
+      "AccessLab": "-",
+      "AccessCampus": "172.20.9.22:50001",
+      "AccessField": "vnc.qpqi.group:50522"
+    },
+    {
+      "ServiceName": "[VNC] Claude",
+      "AccessLab": "-",
+      "AccessCampus": "172.20.9.23:50001",
+      "AccessField": "vnc.qpqi.group:50523"
+    }
   ]
 }

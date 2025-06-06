@@ -3,20 +3,36 @@
     "NONSSL": {
       "localhost:9000": "ws://iflab.qpqi.group:1263/ws/",
       "localhost:9001": "ws://iflab.qpqi.group:1263/ws/",
-      "iflab.qpqi.group": "ws://iflab.qpqi.group:1263/ws/"
+      "iflab.qpqi.group": "ws://iflab.qpqi.group:1263/ws/",
+      "tf.qpqi.group": "ws://tf.qpqi.group:1263/ws/"
     },
     "SSL": {
-      "iflab.qpqi.group": "wss://iflab.qpqi.group/ws7/"
+      "iflab.qpqi.group": "wss://iflab.qpqi.group/ws7/",
+      "tf.qpqi.group": "wss://tf.qpqi.group/ws7/"
     }
   },
   "CalvinFriend": {
     "NONSSL": {
       "localhost:9000": "ws://iflab.qpqi.group:1163/ws/",
       "localhost:9001": "ws://iflab.qpqi.group:1163/ws/",
-      "iflab.qpqi.group": "ws://iflab.qpqi.group:1163/ws/"
+      "iflab.qpqi.group": "ws://iflab.qpqi.group:1163/ws/",
+      "tf.qpqi.group": "ws://tf.qpqi.group:1163/ws/"
     },
     "SSL": {
-      "iflab.qpqi.group": "wss://iflab.qpqi.group/ws/"
+      "iflab.qpqi.group": "wss://iflab.qpqi.group/ws/",
+      "tf.qpqi.group": "wss://tf.qpqi.group/ws/"
+    }
+  },
+  "Claude": {
+    "NONSSL": {
+      "localhost:9000": "ws://iflab.qpqi.group:1563/ws/",
+      "localhost:9001": "ws://iflab.qpqi.group:1563/ws/",
+      "iflab.qpqi.group": "ws://iflab.qpqi.group:1563/ws/",
+      "tf.qpqi.group": "ws://tf.qpqi.group:1563/ws/"
+    },
+    "SSL": {
+      "iflab.qpqi.group": "wss://iflab.qpqi.group/wsClaude/",
+      "tf.qpqi.group": "wss://tf.qpqi.group/wsClaude/"
     }
   }
 }

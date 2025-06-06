@@ -7,6 +7,7 @@ const routes = [
       { path: 'dashboard', meta: { title: 'Dashboard - InteractionFree View' }, component: () => import('pages/DashBoard.vue') },
       { path: 'tdcviewer', meta: { title: 'TDCViewer - InteractionFree View' }, component: () => import('pages/TDCViewer.vue') },
       { path: 'tdcencoding', meta: { title: 'TDCEncoding - InteractionFree View' }, component: () => import('pages/TDCEncoding.vue') },
+      { path: 'process', meta: { title: 'Process - InteractionFree View' }, component: () => import('pages/TFProcess.vue') },
       { path: 'config', meta: { title: 'Config - InteractionFree View' }, component: () => import('pages/TFConfig.vue') },
       { path: 'tfmonitor', meta: { title: 'Monitor - InteractionFree View' }, component: () => import('pages/TFMonitor.vue') },
       { path: 'tfaccess', meta: { title: 'Access - InteractionFree View' }, component: () => import('pages/TFAccess.vue') },

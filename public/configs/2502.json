@@ -32,10 +32,17 @@
         },
         {
           "type": "application/page",
+          "name": "process",
+          "label": "Process",
+          "icon": "checklist",
+          "href": "#/process?experiment=2502&tdcservice=TFTDCServer&collection=TFQKD_TDC&nameA=Alice&nameB=Bob&nameC=Calvin"
+        },
+        {
+          "type": "application/page",
           "name": "config",
           "label": "Config",
           "icon": "settings",
-          "href": "#/config?experiment=2502&tdcservice=TFTDCServer&collection=TFQKD_TDC"
+          "href": "#/config?experiment=2502"
         },
         {
           "type": "application/page",
@@ -55,13 +62,89 @@
     }
   ],
   "Access": [
-    { "ServiceName": "IF Broker", "AccessLab": "192.168.25.5:1061", "AccessCampus": "-", "AccessField": "code.qpqi.group:1161" },
-    { "ServiceName": "Raw Data (datablock)", "AccessLab": "192.168.25.5:1000", "AccessCampus": "-", "AccessField": "code.qpqi.group:1001" },
-    { "ServiceName": "[VNC] Alice", "AccessLab": "192.168.25.36(:5900)", "AccessCampus": "-", "AccessField": "vnc.qpqi.group:50036" },
-    { "ServiceName": "[VNC] Bob", "AccessLab": "192.168.25.37(:5900)", "AccessCampus": "-", "AccessField": "vnc.qpqi.group:50037" },
-    { "ServiceName": "[VNC] Calvin", "AccessLab": "192.168.25.38(:5900)", "AccessCampus": "-", "AccessField": "vnc.qpqi.group:50038" },
-    { "ServiceName": "[VNC] Alice Sender", "AccessLab": "192.168.25.40(:5900)", "AccessCampus": "-", "AccessField": "vnc.qpqi.group:50040" },
-    { "ServiceName": "[VNC] Bob Sender", "AccessLab": "192.168.25.41(:5900)", "AccessCampus": "-", "AccessField": "vnc.qpqi.group:50041" },
-    { "ServiceName": "[VNC] Calvin Server", "AccessLab": "192.168.25.5(:5900)", "AccessCampus": "-", "AccessField": "vnc.qpqi.group:50138" }
+    {
+      "ServiceName": "IF Broker",
+      "AccessLab": "192.168.25.5:1061",
+      "AccessCampus": "172.20.8.33:1161",
+      "AccessField": "code.qpqi.group:1161"
+    },
+    {
+      "ServiceName": "[VNC] Alice",
+      "AccessLab": "192.168.25.36(:5900)",
+      "AccessCampus": "172.20.8.33:50036",
+      "AccessField": "vnc.qpqi.group:50036"
+    },
+    {
+      "ServiceName": "[VNC] Bob",
+      "AccessLab": "192.168.25.37(:5900)",
+      "AccessCampus": "172.20.8.33:50037",
+      "AccessField": "vnc.qpqi.group:50037"
+    },
+    {
+      "ServiceName": "[VNC] Calvin",
+      "AccessLab": "192.168.25.38(:5900)",
+      "AccessCampus": "172.20.8.33:50038",
+      "AccessField": "vnc.qpqi.group:50038"
+    },
+    {
+      "ServiceName": "[VNC] Alice Sender",
+      "AccessLab": "192.168.25.40(:5900)",
+      "AccessCampus": "172.20.8.33:50040",
+      "AccessField": "vnc.qpqi.group:50040"
+    },
+    {
+      "ServiceName": "[VNC] Bob Sender",
+      "AccessLab": "192.168.25.41(:5900)",
+      "AccessCampus": "172.20.8.33:50041",
+      "AccessField": "vnc.qpqi.group:50041"
+    },
+    {
+      "ServiceName": "[VNC] Alice AWG70k",
+      "AccessLab": "192.168.25.51(:5900)",
+      "AccessCampus": "172.20.8.33:50051",
+      "AccessField": "vnc.qpqi.group:50051"
+    },
+    {
+      "ServiceName": "[VNC] Bob AWG70k",
+      "AccessLab": "192.168.25.52(:5900)",
+      "AccessCampus": "172.20.8.33:50052",
+      "AccessField": "vnc.qpqi.group:50052"
+    },
+    {
+      "ServiceName": "[VNC] Calvin Server",
+      "AccessLab": "192.168.25.5(:5900)",
+      "AccessCampus": "172.20.8.33:50138",
+      "AccessField": "vnc.qpqi.group:50138"
+    },
+    {
+      "ServiceName": "[SSH] Calvin Server",
+      "AccessLab": "192.168.25.5(:22)",
+      "AccessCampus": "172.20.8.33:13822",
+      "AccessField": "-"
+    },
+    {
+      "ServiceName": "Data (Meta)",
+      "AccessLab": "192.168.25.5:1061",
+      "AccessCampus": "172.20.8.33:1161",
+      "AccessField": "code.qpqi.group:1161"
+    },
+    {
+      "ServiceName": "Data (Raw)",
+      "AccessLab": "192.168.25.5:1000",
+      "AccessCampus": "172.20.8.33:1001",
+      "AccessField": "code.qpqi.group:1001"
+    },
+    {
+      "ServiceName": "Archived Data (Meta)",
+      "AccessLab": "-",
+      "AccessCampus": "172.20.8.33:1061",
+      "AccessField": "code.qpqi.group:1061"
+    },
+    {
+      "ServiceName": "Archived Data (Raw)",
+      "AccessLab": "-",
+      "AccessCampus": "172.20.8.33:1003",
+      "AccessField": "code.qpqi.group:1003"
+    }
   ]
 }

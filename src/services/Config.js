@@ -14,8 +14,8 @@ class ExperimentConfig {
     let responseConfig;
     let responseIFWorker;
     try {
-      const f1 = fetch(this.applicationConfigFileURL);
-      const f2 = fetch(this.IFWorkerFileURL);
+      const f1 = fetch(this.applicationConfigFileURL + '?t=' + new Date().getTime());
+      const f2 = fetch(this.IFWorkerFileURL + '?t=' + new Date().getTime());
       responseConfig = await f1
       responseIFWorker = await f2
       if (responseConfig == undefined || !responseConfig.ok) {

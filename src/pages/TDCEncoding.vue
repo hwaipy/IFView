@@ -24,8 +24,8 @@
           @keyup.esc="reviewTimeBeginModel.formatted = ''; onReviewTimeBeginEditted(true);"
           @update:model-value="onReviewTimeBeginEditted(false)" :error="!reviewTimeBeginModel.valid" error-message=""
           no-error-icon></q-input>
-          <div class="" style="margin-top: 14px; font-weight: bold; margin-left: 6px; margin-right: 6px;"> to </div>
-          <q-input class="channel-info-input channel-info-input-review" v-model="reviewTimeEndModel.formatted" square
+        <div class="" style="margin-top: 14px; font-weight: bold; margin-left: 6px; margin-right: 6px;"> to </div>
+        <q-input class="channel-info-input channel-info-input-review" v-model="reviewTimeEndModel.formatted" square
           outlined input-class="text-center" @blur="onReviewTimeEndEditted(true)"
           @keyup.enter="onReviewTimeEndEditted(true)"
           @keyup.esc="reviewTimeEndModel.formatted = ''; onReviewTimeEndEditted(true);"
@@ -46,6 +46,51 @@
       v-if="reviewUpdateProgress > 0 && reviewUpdateProgress <= 1 && histogramMode == 'review'" animation-speed="300" />
     <q-separator />
     <q-card-section horizontal>
+      <q-card-section>
+        <!-- <div class="row">
+          <q-card v-for="histogramInfo in histogramInfos" :key="histogramInfo.name"
+            class="row histogram-info-item items-center justify-between"
+            style="padding-left: 6px; padding-right: 0px; margin-right: 12px">
+            <div class="q-pa-md row histogram-info-label" style="font-weight: bold;">
+              <div class="self-center">{{ histogramInfo.label }}</div>
+            </div>
+            <div class="q-pa-md col histogram-info-label">
+              <q-input class="channel-info-input" v-model="histogramInfo.formattedValue" square outlined
+                @focus="onHistogramConfigEditorFocus(histogramInfo)" @blur="onHistogramConfigEditorBlur(histogramInfo)"
+                @keyup.enter="onHistogramConfigEditorEnter(histogramInfo)"
+                @keyup.esc="onHistogramConfigEditorEscape(histogramInfo)" :ref="(el) => histogramInfo.element = el"
+                input-class="text-right" :readonly="!histogramConfigEditable"></q-input>
+            </div>
+            <div v-if="histogramInfo.tail" class="q-pa-md row histogram-info-label" style="padding-right: 4px;">
+              <div class="self-center">{{ histogramInfo.tail }}</div>
+            </div>
+          </q-card>
+        </div> -->
+        <div class="row">
+          <div class="" style="margin-top: 14px; font-weight: bold; margin-right: 6px"> Pulse </div>
+          <div class="" style="margin-top: 14px; margin-right: 6px"> from </div>
+          <q-input v-model="mp00" input-class="text-center" class="marker-info-input" square outlined
+            @blur="onMarkPointEditorBlur(0, 0)" @keyup.enter="onMarkPpointEditorEnter(0, 0)"
+            @keyup.esc="onMarkPointEditorEscape(0, 0)"></q-input>
+          <div class="" style="margin-top: 14px; margin-left: 6px; margin-right: 6px;"> ns to </div>
+          <q-input v-model="mp01" input-class="text-center" class="marker-info-input" square outlined
+            @blur="onMarkPointEditorBlur(0, 1)" @keyup.enter="onMarkPpointEditorEnter(0, 1)"
+            @keyup.esc="onMarkPointEditorEscape(0, 1)"></q-input>
+          <div class="" style="margin-top: 14px; margin-left: 6px; margin-right: 6px;"> ns, </div>
+          <div class="" style="margin-top: 14px; font-weight: bold; margin-right: 6px"> Vacuum </div>
+          <div class="" style="margin-top: 14px; margin-right: 6px"> from </div>
+          <q-input v-model="mp10" input-class="text-center" class="marker-info-input" square outlined
+            @blur="onMarkPointEditorBlur(1, 0)" @keyup.enter="onMarkPpointEditorEnter(1, 0)"
+            @keyup.esc="onMarkPointEditorEscape(1, 0)"></q-input>
+          <div class="" style="margin-top: 14px; margin-left: 6px; margin-right: 6px;"> ns to </div>
+          <q-input v-model="mp11" input-class="text-center" class="marker-info-input" square outlined
+            @blur="onMarkPointEditorBlur(1, 1)" @keyup.enter="onMarkPpointEditorEnter(1, 1)"
+            @keyup.esc="onMarkPointEditorEscape(1, 1)"></q-input>
+          <div class="" style="margin-top: 14px; margin-left: 6px; margin-right: 6px;"> ns. </div>
+        </div>
+      </q-card-section>
+    </q-card-section>
+    <q-card-section horizontal>
       <q-card-section style="width: 100%; padding-bottom: 8px;" class="">
         <div class="card-grid">
           <q-card v-for="config in MEConfigs" :key="config[1]" class="chart-card" bordered>
@@ -58,18 +103,18 @@
     </q-card-section>
     <q-separator />
     <q-card-section style="padding-top: 0px; padding-bottom: 8px">
-        <q-card v-for="reportInfo in reportInfos" :key="reportInfo.key" class="row"
-          style="margin-top: 8px; margin-bottom: 0px; padding-left: 4px; padding-right: 4px; margin-right: 12px; width: 410px">
-          <div class="q-pa-md row histogram-info-label" style="font-weight: bold; margin-right: 8px; width: 270px">
-            <div class="col self-center text-right"> {{ reportInfo.title + ': ' }} </div>
-          </div>
-          <q-input v-model="reportInfo.value" class="channel-info-input" square outlined readonly
-            input-class="text-right" style="width: 120px">
-            <q-tooltip :delay="3000" anchor="center right" self="center left" class="text-h2">
-              {{ reportInfo.value }}
-            </q-tooltip>
-          </q-input>
-        </q-card>
+      <q-card v-for="reportInfo in reportInfos" :key="reportInfo.key" class="row"
+        style="margin-top: 8px; margin-bottom: 0px; padding-left: 4px; padding-right: 4px; margin-right: 12px; width: 410px">
+        <div class="q-pa-md row histogram-info-label" style="font-weight: bold; margin-right: 8px; width: 270px">
+          <div class="col self-center text-right"> {{ reportInfo.title + ': ' }} </div>
+        </div>
+        <q-input v-model="reportInfo.value" class="channel-info-input" square outlined readonly input-class="text-right"
+          style="width: 120px">
+          <q-tooltip :delay="3000" anchor="center right" self="center left" class="text-h2">
+            {{ reportInfo.value }}
+          </q-tooltip>
+        </q-input>
+      </q-card>
     </q-card-section>
   </q-card>
 </template>
@@ -87,7 +132,6 @@ let workerTDC = null
 
 const parameters = route.query
 const collection = parameters['collection'] || null
-const isFieldTest = (parameters['fieldtest'] || null) == 'true'
 const reportInfos = ref([
   { key: 'SPER', title: 'Signal Pulse Extinction Ratio', value: '' },
   { key: 'VI', title: 'Vacuum / Z', value: '' },
@@ -157,20 +201,43 @@ const MEConfigs = [
   ['Sync Alice Monitor', 'moSyncAliceMonitor', ['Sync Alice Monitor']],
   ['Sync Bob Monitor', 'moSyncBobMonitor', ['Sync Bob Monitor']],
 ]
-const markPoints = [[4.5, 5.5, '#F1E4C6'], [7, 9.0, '#D3E4EB']]
-
-const fillTrace = []
-for (const markPoint of markPoints) {
-  fillTrace.push({
-    x: [markPoint[0], markPoint[0], markPoint[1], markPoint[1]],
-    y: [-1e10, 1e10, 1e10, -1e10],
-    fill: 'toself',
-    type: 'scatter',
-    mode: 'none',
-    hoverinfo: 'none',
-    fillcolor: markPoint[2],
-  })
+const mp00 = ref(4.5)
+const mp01 = ref(5.5)
+const mp10 = ref(7.0)
+const mp11 = ref(9.0)
+const mpMods = [[mp00, mp01], [mp10, mp11]]
+const markPoints = [[mp00.value, mp01.value, '#F1E4C6'], [mp10.value, mp11.value, '#D3E4EB']]
+function onMarkPointEditorBlur(p0, p1) { onMarkPointChanged(p0, p1) }
+function onMarkPpointEditorEnter(p0, p1) { onMarkPointChanged(p0, p1) }
+function onMarkPointEditorEscape(p0, p1) { mpMods[p0][p1].value = markPoints[p0][p1] }
+function onMarkPointChanged(p0, p1) {
+  const value = mpMods[p0][p1].value
+  const n = parseFloat(value)
+  if (isNaN(n)) {
+    mpMods[p0][p1].value = p0 * 2 + p1
+    n = p0 * 2 + p1
+  }
+  markPoints[p0][p1] = n
+  saveMarkPointsInfo()
 }
+const markPointsInfoInited = ref(false)
+function saveMarkPointsInfo() {
+  if (markPointsInfoInited.value) localStorage.tdcencoding_markpointsinfos = JSON.stringify(mpMods.map(l => { return l.map(i => i.value) }))
+}
+function loadMarkPointsInfo() {
+  const infos = localStorage.tdcencoding_markpointsinfos
+  if (infos) {
+    const parsedInfos = JSON.parse(infos)
+    for (let i = 0; i < mpMods.length; i++) {
+      for (let j = 0; j < mpMods[i].length; j++) {
+        mpMods[i][j].value = parsedInfos[i][j]
+        markPoints[i][j] = parsedInfos[i][j]
+      }
+    }
+  }
+  markPointsInfoInited.value = true
+}
+loadMarkPointsInfo()
 
 const MEHistograms = new Array(MEConfigs.length).fill(0).map(() => { return new Histogram() })
 
@@ -196,7 +263,6 @@ function listener(event, arg) {
 }
 
 function plot(result, append) {
-  const plotStart = new Date().getTime()
   const layout = {
     xaxis: { title: 'Time (ns)' },
     yaxis: { title: 'Count' },
@@ -247,6 +313,20 @@ function plot(result, append) {
     // deal with reports
     updateReports(result, MEHistograms)
   }
+
+  const fillTrace = []
+  for (const markPoint of markPoints) {
+    fillTrace.push({
+      x: [markPoint[0], markPoint[0], markPoint[1], markPoint[1]],
+      y: [-1e10, 1e10, 1e10, -1e10],
+      fill: 'toself',
+      type: 'scatter',
+      mode: 'none',
+      hoverinfo: 'none',
+      fillcolor: markPoint[2],
+    })
+  }
+
   for (let i = 0; i < MEConfigs.length; i++) {
     layout['title'] = MEConfigs[i][0]
     layout['yaxis']['range'] = [0, Math.max(...traces[i]['y']) * 1.05]
@@ -258,8 +338,6 @@ function plot(result, append) {
     })
     Plotly.redraw(div)
   }
-  var plotStop = new Date().getTime()
-  // console.log('plot done in ' + (plotStop - plotStart) + ' ms')
 }
 
 async function updateReports(result, histograms) {
@@ -325,6 +403,26 @@ function calculateRegionValues(result, histograms) {
   margin-right: 10px
   :deep(.q-field__control)
     width: 220px
+  :deep(.q-field__bottom)
+    width: 0px
+    height: 0px
+    visibility: hidden
+
+.marker-info-input
+  height: 32px
+  margin-top: 8px
+  margin-left: 10px
+  margin-right: 10px
+  margin-bottom: 2px
+  font-size: 1.25rem
+  :deep(.q-field__control)
+    height: 32px
+    padding-left: 6px
+    padding-right: 6px
+    width: 45px
+  :deep(.q-field__native)
+    padding-top: 0px
+    padding-bottom: 0px
   :deep(.q-field__bottom)
     width: 0px
     height: 0px
