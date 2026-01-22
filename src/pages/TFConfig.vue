@@ -71,7 +71,7 @@
     <q-separator />
     <q-card-section class="bg-card-head" style="height: 48px; padding-left: 16px; padding-top: 0px;">
       <div class="row">
-        <q-item-label class="text-h6" style="margin-top: 12px;">Power & Polarization</q-item-label>
+        <q-item-label class="text-h6" style="margin-top: 12px;">Power Meters</q-item-label>
       </div>
     </q-card-section>
     <q-separator />
@@ -83,6 +83,24 @@
               <q-item-label class="text-body2 text-weight-bold" style="margin-top: 13px; margin-left: 14px;">
                 {{ info.title }}
               </q-item-label>
+              <q-card
+                style="margin-left: 20px; margin-right: 0px; margin-top: 2px; margin-bottom: 2px; width: 235px; height: 20px;"
+                flat :hidden="!info.lockerable">
+                <q-card-section class="row" style="height: 40px; padding: 0px;">
+                  <q-checkbox v-model="info.locked" @update:model-value="(v, e) => setPowerLockStatus(info)" />
+                  <q-item-label class="text-body2 text-weight-bold" style="margin-top: 13px; margin-left: 14px;">
+                    Lock to
+                  </q-item-label>
+                  <q-input v-model="info.lockValue" class="device-info-main" square :disable="info.locked"
+                    style="width: 50px; font-size: 18px; margin-top: 4px;"></q-input>
+                  <q-item-label class="text-body2 text-weight-bold" style="margin-top: 13px; margin-left: 14px;">
+                    dBm
+                  </q-item-label>
+                </q-card-section>
+              </q-card>
+              <!-- <q-item-label class="text-body2 text-weight-bold" style="margin-top: 13px; margin-left: 14px;">
+                Lock
+              </q-item-label> -->
             </q-card-section>
             <q-separator />
             <q-card-section class="row" style="padding-bottom: 8px;">
@@ -91,7 +109,7 @@
                   {{ info.powers[0]
                   }}</div>
                 <div style="font-size: 30px; width: 175px; text-align: center;">{{ info.powers[1]
-                }}</div>
+                  }}</div>
               </div>
             </q-card-section>
           </q-card>
@@ -103,7 +121,6 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { useRoute } from 'vue-router'
 import { SimpleFetcher } from 'src/services/IFExp';
 import { loadConfig } from 'src/services/Config';
 
@@ -164,10 +181,15 @@ for (const id of dcDeviceIDs) {
   }
 }
 const powerMonitorInfos = ref([
-  { name: 'Alice', title: 'Power Meter Alice', powers: ['NaN', 'NaN'] },
-  { name: 'Bob', title: 'Power Meter Bob', powers: ['NaN', 'NaN'] },
-  { name: 'Senders', title: 'Power Meter Senders', powers: ['NaN', 'NaN'] },
+  { name: 'Alice', title: 'Power Meter Alice', powers: ['NaN', 'NaN'], lockerable: true, locked: ref(false), lockValue: ref(-70) },
+  { name: 'Bob', title: 'Power Meter Bob', powers: ['NaN', 'NaN'], lockerable: true, locked: ref(false), lockValue: ref(-70) },
+  { name: 'Senders', title: 'Power Meter Senders', powers: ['NaN', 'NaN'], lockerable: false, locked: ref(false), lockValue: ref(-70) },
 ])
+function setPowerLockStatus(info) {
+  if (info.lockValue > -30) info.lockValue = -30
+  workerMain['PowerLocker_' + info.name].setLockValue(info.lockValue)
+  workerMain['PowerLocker_' + info.name].setLockStatus(info.locked)
+}
 
 function onVSetFocus(info) { info.VSetEditing = true }
 function onVSetBlur(info) { doneVSetEditing(info, true, true) }
@@ -257,6 +279,22 @@ const pmFetcher = new SimpleFetcher(async () => {
     result.push([Number.NaN, Number.NaN]);
     // console.log(error);
   }
+  try { powerMonitorInfos.value[0]['locked'] = await workerMain.PowerLocker_Alice.getLockStatus() }
+  catch (error) {
+    powerMonitorInfos.value[0]['locked'] = false;
+  }
+  // try { powerMonitorInfos.value[0]['lockValue'] = await workerMain.PowerLocker_Alice.getLockValue() }
+  // catch (error) {
+  //   powerMonitorInfos.value[0]['lockValue'] = -70;
+  // }
+  try { powerMonitorInfos.value[1]['locked'] = await workerMain.PowerLocker_Bob.getLockStatus() }
+  catch (error) {
+    powerMonitorInfos.value[1]['locked'] = false;
+  }
+  // try { powerMonitorInfos.value[1]['lockValue'] = await workerMain.PowerLocker_Bob.getLockValue() }
+  // catch (error) {
+  //   powerMonitorInfos.value[1]['lockValue'] = -70;
+  // }
   for (const part in result) {
     for (const ch in result[part]) {
       powerMonitorInfos.value[part].powers[ch] = Number.isNaN(result[part][ch]) ? 'NaN' : result[part][ch].toFixed(2) + ' dBm'

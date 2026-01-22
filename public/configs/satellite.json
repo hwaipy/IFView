@@ -32,6 +32,13 @@
         },
         {
           "type": "application/page",
+          "name": "process",
+          "label": "Process",
+          "icon": "checklist",
+          "href": "#/process?experiment=satellite&tdcservice=TFTDCServer&collection=TFQKD_TDC&nameA=Adi&nameB=Bruce&nameC=Claude"
+        },
+        {
+          "type": "application/page",
           "name": "config",
           "label": "Config",
           "icon": "settings",

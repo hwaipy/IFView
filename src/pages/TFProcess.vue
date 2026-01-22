@@ -197,6 +197,7 @@ let tdcServer = null
 const tdcToggles = ref([
   { name: 'Post Process', key: 'post-process', value: ref(null), set: (v) => setPostProcessStatus(v) },
   { name: 'Raw Data Store', key: 'raw-data-store', value: ref(null), set: (v) => setRawDataStore(v) },
+  { name: 'QBER', key: 'qber', value: ref(null), set: (v) => setRealTimeQBER(v) },
 ])
 const latestTDCDataTime = ref('')
 const ch0Offset = ref(NaN)
@@ -207,7 +208,7 @@ async function fixCH0Offset() {
   const delayMS = parseInt(c1ppsTime.value * 1000 % 1000);
   const delayNS = parseInt(ch0Offset.value / 1000)   // to ns
   const move = (parseInt((delayNS < 20000) ? (1000000000 - delayNS) : 40000 - delayNS) + 100) % 1000000000 + delayMS * 1000000;
-  if (move > 0) await workerTDC['TF_AtomicClock_' + nameC].delay1PPS(move)
+  if (move > 0) await workerMain['TF_AtomicClock_' + nameC].delay1PPS(move)
   fixCH0OffsetButtonDisabled.value = false
 }
 
@@ -246,8 +247,15 @@ function onDopplerBeginEditted(finished) {
   const dateString = 'YYYY-MM-DD HH:mm:ss'
   if (dopplerBeginString.value == '' && finished) {
     const now = moment();
-    const targetTime = now.add(30 - (now.seconds() % 10), 'seconds');
+    const needNext10s = now.seconds() % 10 > 7
+    const targetTime = now.add(20 - (now.seconds() % 10) + (needNext10s ? 10 : 0), 'seconds');
     dopplerBeginString.value = targetTime.format(dateString)
+  }
+  dopplerBegin.value = parseDateString(dopplerBeginString.value)
+  if (finished && dopplerBegin.value % 10000 != 0) {
+    console.log(dopplerBegin.value % 10000);
+    dopplerBegin.value = (parseInt(dopplerBegin.value / 10000) + 1) * 10000
+    dopplerBeginString.value = dopplerBegin.value >= 0 ? moment(dopplerBegin.value).format(dateString) : '';
   }
   dopplerBegin.value = parseDateString(dopplerBeginString.value)
   updateDopplerStatus();
@@ -255,7 +263,7 @@ function onDopplerBeginEditted(finished) {
 }
 const updateDopplerStatus = () => {
   if (dopplerBegin.value) {
-    dopplerBeginValid.value = !Number.isNaN(dopplerBegin.value) && (dopplerBegin.value % 10000 == 0) && (dopplerBegin.value >= Date.now() + 1000 * 10)
+    dopplerBeginValid.value = !Number.isNaN(dopplerBegin.value) && (dopplerBegin.value % 10000 == 0) && (dopplerBegin.value >= Date.now() + 1000 * 1)
     //     const progress = Date.now() - dopplerBegin.value
     //     if (dopplerStatus.value == 'Not Started' || dopplerStatus.value == 'Starting' || dopplerStatus.value == 'Stopping' || dopplerStatus.value == 'Stopped') dopplerProgress.value = 0;
     //     else if (dopplerStatus.value == 'Finished') dopplerProgress.value = dopplerTotalDuration.value;
@@ -437,6 +445,13 @@ async function setRawDataStore(status) {
   if (tdcService) await tdcServer.setRawDataStore(status)
 }
 
+async function setRealTimeQBER(status){
+  if (tdcServer) {
+    if (status) await tdcServer.turnOnAnalyser('QKDQBER')
+    else await tdcServer.turnOffAnalyser('QKDQBER')
+  }
+}
+
 const tdcFetcher = new SimpleFetcher(async () => {
   if (tdcService) {
     try {
@@ -449,6 +464,15 @@ const tdcFetcher = new SimpleFetcher(async () => {
     } catch (error) {
       tdcToggles.value[1].value = null
     }
+    // try {
+    console.log("try to sync QBER status");
+    console.log(await tdcServer.isAnalyserOn('QKDQBER'));
+    console.log("heihei");
+
+      tdcToggles.value[2].value = await tdcServer.isAnalyserOn('QKDQBER')
+    // } catch (error) {
+    //   tdcToggles.value[2].value = null
+    // }
     try {
       ch0Offset.value = await tdcServer.getCH0Offset()
     } catch (error) {

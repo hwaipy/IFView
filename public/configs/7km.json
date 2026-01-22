@@ -32,6 +32,13 @@
         },
         {
           "type": "application/page",
+          "name": "process",
+          "label": "Process",
+          "icon": "checklist",
+          "href": "#/process?experiment=7km&tdcservice=TFTDCServer&collection=TFQKD_TDC&nameA=Alice&nameB=Bob&nameC=Charlie"
+        },
+        {
+          "type": "application/page",
           "name": "config",
           "label": "Config",
           "icon": "settings",
@@ -55,13 +62,59 @@
     }
   ],
   "Access": [
-    { "ServiceName": "IF Broker (wrong)", "AccessLab": "192.168.25.5:1061", "AccessCampus": "-", "AccessField": "code.qpqi.group:1161" },
-    { "ServiceName": "Raw Data (datablock) (wrong)", "AccessLab": "192.168.25.5:1000", "AccessCampus": "-", "AccessField": "code.qpqi.group:1001" },
-    { "ServiceName": "[VNC] Alice (wrong)", "AccessLab": "192.168.25.36(:5900)", "AccessCampus": "-", "AccessField": "vnc.qpqi.group:50036" },
-    { "ServiceName": "[VNC] Bob (wrong)", "AccessLab": "192.168.25.37(:5900)", "AccessCampus": "-", "AccessField": "vnc.qpqi.group:50037" },
-    { "ServiceName": "[VNC] Calvin (wrong)", "AccessLab": "192.168.25.38(:5900)", "AccessCampus": "-", "AccessField": "vnc.qpqi.group:50038" },
-    { "ServiceName": "[VNC] Alice Sender (wrong)", "AccessLab": "192.168.25.40(:5900)", "AccessCampus": "-", "AccessField": "vnc.qpqi.group:50040" },
-    { "ServiceName": "[VNC] Bob Sender (wrong)", "AccessLab": "192.168.25.41(:5900)", "AccessCampus": "-", "AccessField": "vnc.qpqi.group:50041" },
-    { "ServiceName": "[VNC] Calvin Server (wrong)", "AccessLab": "192.168.25.5(:5900)", "AccessCampus": "-", "AccessField": "vnc.qpqi.group:50138" }
+    {
+      "ServiceName": "IF Broker",
+      "AccessLab": "192.168.25.5:1061",
+      "AccessCampus": "172.20.8.33:1161",
+      "AccessField": "code.qpqi.group:1161"
+    },
+    {
+      "ServiceName": "IF Broker (Charlie)",
+      "AccessLab": "-",
+      "AccessCampus": "-",
+      "AccessField": "code.qpqi.group:1261"
+    },
+    {
+      "ServiceName": "Raw Data (datablock)",
+      "AccessLab": "-",
+      "AccessCampus": "-",
+      "AccessField": "code.qpqi.group:1001"
+    },
+    {
+      "ServiceName": "[VNC] Alice (wrong)",
+      "AccessLab": "192.168.25.36(:5900)",
+      "AccessCampus": "-",
+      "AccessField": "vnc.qpqi.group:50036"
+    },
+    {
+      "ServiceName": "[VNC] Bob (wrong)",
+      "AccessLab": "192.168.25.37(:5900)",
+      "AccessCampus": "-",
+      "AccessField": "vnc.qpqi.group:50037"
+    },
+    {
+      "ServiceName": "[VNC] Calvin (wrong)",
+      "AccessLab": "192.168.25.38(:5900)",
+      "AccessCampus": "-",
+      "AccessField": "vnc.qpqi.group:50038"
+    },
+    {
+      "ServiceName": "[VNC] Alice Sender (wrong)",
+      "AccessLab": "192.168.25.40(:5900)",
+      "AccessCampus": "-",
+      "AccessField": "vnc.qpqi.group:50040"
+    },
+    {
+      "ServiceName": "[VNC] Bob Sender (wrong)",
+      "AccessLab": "192.168.25.41(:5900)",
+      "AccessCampus": "-",
+      "AccessField": "vnc.qpqi.group:50041"
+    },
+    {
+      "ServiceName": "[VNC] Calvin Server (wrong)",
+      "AccessLab": "192.168.25.5(:5900)",
+      "AccessCampus": "-",
+      "AccessField": "vnc.qpqi.group:50138"
+    }
   ]
 }
