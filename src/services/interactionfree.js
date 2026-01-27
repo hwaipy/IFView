@@ -245,7 +245,7 @@ class IFWorkerCore {
 
     let __this = this;
 
-    function remoteFunction() {}
+    function remoteFunction() { }
     return new Proxy(remoteFunction, {
       get: function (target, key, receiver) {
         if (key === "then" && path === "") return undefined;
@@ -269,6 +269,9 @@ class IFWorkerCore {
 }
 
 function IFWorker(endpoint, serviceObject, serviceName) {
+  console.log('endpoint');
+  console.log(endpoint);
+
   let core = new IFWorkerCore(endpoint, serviceObject, serviceName);
   core.connect();
   if (serviceName) {

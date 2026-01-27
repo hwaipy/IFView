@@ -24,6 +24,9 @@ let worker = undefined
 // let secureWorker = undefined
 
 function IFWorkerInstance(ssl) {
+  console.log('currentHost');
+  console.log(currentHost);
+
   if (worker == undefined) {
     if (ssl === undefined) ssl = (window.location.protocol == 'https:'); //(currentDomain === 'interactionfree.cn')
     if (ssl) worker = IFWorker("wss://" + wssMap[currentHost] + "/ws7/")

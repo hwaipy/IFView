@@ -4,7 +4,6 @@ import re
 import datetime
 import hashlib
 from yaml import load, dump
-from rich.progress import Progress
 from yaml import Loader, Dumper
 
 serverRoot = '/web/IFLab'
