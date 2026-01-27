@@ -183,6 +183,7 @@ function onUpdateReview() {
 const filter = {
   'Data.Counter': 1,
   'Data.TFQKDEncoding': 1,
+  'Data.TFQKDEncoding2': 1,
   'Data.TFQKDSyncAlice': 1,
   'Data.TFQKDSyncBob': 1,
   'Data.TFQKDSyncAliceMonitor': 1,
@@ -263,6 +264,7 @@ function listener(event, arg) {
 }
 
 function plot(result, append) {
+  console.log(result);
   const layout = {
     xaxis: { title: 'Time (ns)' },
     yaxis: { title: 'Count' },

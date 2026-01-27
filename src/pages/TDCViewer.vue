@@ -412,7 +412,7 @@ onUnmounted(() => {
 function listener(event, arg) {
   if (event == 'FetchTimeDelta') {
     fetchTimeDelta.value = arg
-    console.log(arg);
+    // console.log(arg);
   }
   else if (event == 'FetchingProgress') reviewUpdateProgress.value = arg
   else if (event == 'HistogramXsMatched') reviewError.value['XsNotMatched'] = !arg
