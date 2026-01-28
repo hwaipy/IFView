@@ -1,2 +1,3 @@
+#!/bin/bash
+
 yarn quasar dev
-./publish.sh ls
