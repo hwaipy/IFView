@@ -1,13 +1,28 @@
 #!/bin/bash
+set -euo pipefail
 
-sudo yarn quasar build
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$ROOT"
+
+if command -v yarn >/dev/null 2>&1; then
+  yarn quasar build
+else
+  npm run build
+fi
+
+DIST_SPA="$ROOT/dist/spa"
+if [ ! -d "$DIST_SPA" ]; then
+  echo "错误: 构建未生成 $DIST_SPA" >&2
+  exit 1
+fi
+
 mkdir -p dist-history
 zip -q -r "dist-history/spa-$(date -u +%Y-%m-%dT%H-%M-%SZ).zip" dist/spa
 
 USER="ubuntu"
 HOST="code.qpqi.group"
 PORT="223"
-LOCAL="/workspaces/IFView/dist/spa/"
+LOCAL="${DIST_SPA}/"
 REMOTE="/home/ubuntu/dockers/nginx/html/IFView/"
 KEY_NAME="id_rsa_${HOST}"
 

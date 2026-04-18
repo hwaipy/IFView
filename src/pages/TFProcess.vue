@@ -221,7 +221,7 @@ async function fixAlice1pps() {
     alice1ppsTime.value = NaN
     if (currentValue < 20e-3 || currentValue > 9980e-3) return;
     const distance = 10 - currentValue;
-    await workerMain['TF_TriggerBoard_' + nameA].delayDividedTrigger(parseInt(distance))
+    await workerMain['TF_TriggerBoard_' + nameA].delayDividedTrigger(parseInt(distance + 0.5))
     const distanceInS = parseInt(distance * 1000) % 1000
     const distaneUnit = Math.round(distanceInS / 40);
     if (distaneUnit > 0) await workerMain['TF_AtomicClock_' + nameA].delay1PPS(1000000000 - distaneUnit * 40000000)
@@ -233,7 +233,7 @@ async function fixBob1pps() {
     bob1ppsTime.value = NaN
     if (currentValue < 20e-3 || currentValue > 9980e-3) return;
     const distance = 10 - currentValue;
-    await workerMain['TF_TriggerBoard_' + nameB].delayDividedTrigger(parseInt(distance))
+    await workerMain['TF_TriggerBoard_' + nameB].delayDividedTrigger(parseInt(distance + 0.5))
     const distanceInS = parseInt(distance * 1000) % 1000
     const distaneUnit = Math.round(distanceInS / 40);
     if (distaneUnit > 0) await workerMain['TF_AtomicClock_' + nameB].delay1PPS(1000000000 - distaneUnit * 40000000)
