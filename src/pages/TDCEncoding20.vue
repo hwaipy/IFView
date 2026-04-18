@@ -2,7 +2,7 @@
   <q-card class="histogram-card" bordered>
     <q-card-section class="bg-card-head" style="height: 48px; padding-left: 16px; padding-top: 0px;">
       <div class="row">
-        <q-item-label class="text-h6" style="margin-top: 12px;">Encoding Histograms</q-item-label>
+        <q-item-label class="text-h6" style="margin-top: 12px;">Encoding Histograms 2.0</q-item-label>
         <div class="" style="margin-left: 10px; margin-top: 6px">
           <q-btn-toggle v-model="histogramMode" size="md" toggle-color="btn-positive" color="btn-negative" unelevated
             :options="histogramModeOptions" />
@@ -102,19 +102,37 @@
       </q-card-section>
     </q-card-section>
     <q-separator />
-    <q-card-section style="padding-top: 0px; padding-bottom: 8px">
-      <q-card v-for="reportInfo in reportInfos" :key="reportInfo.key" class="row"
-        style="margin-top: 8px; margin-bottom: 0px; padding-left: 4px; padding-right: 4px; margin-right: 12px; width: 410px">
-        <div class="q-pa-md row histogram-info-label" style="font-weight: bold; margin-right: 8px; width: 270px">
-          <div class="col self-center text-right"> {{ reportInfo.title + ': ' }} </div>
+    <q-card-section class="report-two-col-section" style="padding-top: 0px; padding-bottom: 8px">
+      <div class="row q-col-gutter-md">
+        <div class="col-12 col-md-6">
+          <div class="report-col-head text-subtitle1 q-mb-sm">Alice <span class="text-caption text-grey-7">(Encoding)</span></div>
+          <q-card v-for="reportInfo in reportInfosAlice" :key="'a-' + reportInfo.key" class="row report-metric-row">
+            <div class="q-pa-md row histogram-info-label" style="font-weight: bold; margin-right: 8px; flex: 1; min-width: 0">
+              <div class="col self-center text-right text-no-wrap ellipsis"> {{ reportInfo.title + ': ' }} </div>
+            </div>
+            <q-input v-model="reportInfo.value" class="channel-info-input" square outlined readonly input-class="text-right"
+              style="width: 120px; flex-shrink: 0">
+              <q-tooltip :delay="3000" anchor="center right" self="center left" class="text-h2">
+                {{ reportInfo.value }}
+              </q-tooltip>
+            </q-input>
+          </q-card>
         </div>
-        <q-input v-model="reportInfo.value" class="channel-info-input" square outlined readonly input-class="text-right"
-          style="width: 120px">
-          <q-tooltip :delay="3000" anchor="center right" self="center left" class="text-h2">
-            {{ reportInfo.value }}
-          </q-tooltip>
-        </q-input>
-      </q-card>
+        <div class="col-12 col-md-6">
+          <div class="report-col-head text-subtitle1 q-mb-sm">Bob <span class="text-caption text-grey-7">(Encoding2)</span></div>
+          <q-card v-for="reportInfo in reportInfosBob" :key="'b-' + reportInfo.key" class="row report-metric-row">
+            <div class="q-pa-md row histogram-info-label" style="font-weight: bold; margin-right: 8px; flex: 1; min-width: 0">
+              <div class="col self-center text-right text-no-wrap ellipsis"> {{ reportInfo.title + ': ' }} </div>
+            </div>
+            <q-input v-model="reportInfo.value" class="channel-info-input" square outlined readonly input-class="text-right"
+              style="width: 120px; flex-shrink: 0">
+              <q-tooltip :delay="3000" anchor="center right" self="center left" class="text-h2">
+                {{ reportInfo.value }}
+              </q-tooltip>
+            </q-input>
+          </q-card>
+        </div>
+      </div>
     </q-card-section>
   </q-card>
 </template>
@@ -132,13 +150,15 @@ let workerTDC = null
 
 const parameters = route.query
 const collection = parameters['collection'] || null
-const reportInfos = ref([
-  { key: 'SPER', title: 'Signal Pulse Extinction Ratio', value: '' },
-  { key: 'VI', title: 'Vacuum / Z', value: '' },
-  { key: 'XI', title: 'X / Z', value: '' },
-  { key: 'YI', title: 'Y / Z', value: '' },
-  { key: 'SRIP', title: 'Signal / Ref (In Pulse)', value: '' },
-])
+const reportRowDefs = [
+  { key: 'SPER', title: 'Signal Pulse Extinction Ratio' },
+  { key: 'VI', title: 'Vacuum / Z' },
+  { key: 'XI', title: 'X / Z' },
+  { key: 'YI', title: 'Y / Z' },
+  { key: 'SRIP', title: 'Signal / Ref (In Pulse)' },
+]
+const reportInfosAlice = ref(reportRowDefs.map((r) => ({ ...r, value: '' })))
+const reportInfosBob = ref(reportRowDefs.map((r) => ({ ...r, value: '' })))
 const histogramMode = ref('instant')
 const histogramModeOptions = [{ label: 'Instant', value: 'instant' }, { label: 'Review', value: 'review' }]
 const histogramConfigEditable = ref(true)
@@ -183,6 +203,7 @@ function onUpdateReview() {
 const filter = {
   'Data.Counter': 1,
   'Data.TFQKDEncoding': 1,
+  'Data.TFQKDEncoding2': 1,
   'Data.TFQKDSyncAlice': 1,
   'Data.TFQKDSyncBob': 1,
   'Data.TFQKDSyncAliceMonitor': 1,
@@ -196,10 +217,8 @@ const MEConfigs = [
   ['X', 'meX', ['X']],
   ['Y', 'meY', ['Y']],
   ['Z', 'meZ', ['Z']],
-  ['Sync Alice', 'moSyncAlice', ['Sync Alice']],
-  ['Sync Bob', 'moSyncBob', ['Sync Bob']],
-  ['Sync Alice Monitor', 'moSyncAliceMonitor', ['Sync Alice Monitor']],
-  ['Sync Bob Monitor', 'moSyncBobMonitor', ['Sync Bob Monitor']],
+  ['sync', 'moSyncAliceBob', ['Sync Alice', 'Sync Bob']],
+  ['Sync Monitor', 'moSyncMonitors', ['Sync Alice Monitor', 'Sync Bob Monitor']],
 ]
 const mp00 = ref(4.5)
 const mp01 = ref(5.5)
@@ -222,10 +241,10 @@ function onMarkPointChanged(p0, p1) {
 }
 const markPointsInfoInited = ref(false)
 function saveMarkPointsInfo() {
-  if (markPointsInfoInited.value) localStorage.tdcencoding_markpointsinfos = JSON.stringify(mpMods.map(l => { return l.map(i => i.value) }))
+  if (markPointsInfoInited.value) localStorage.tdcencoding20_markpointsinfos = JSON.stringify(mpMods.map(l => { return l.map(i => i.value) }))
 }
 function loadMarkPointsInfo() {
-  const infos = localStorage.tdcencoding_markpointsinfos
+  const infos = localStorage.tdcencoding20_markpointsinfos
   if (infos) {
     const parsedInfos = JSON.parse(infos)
     for (let i = 0; i < mpMods.length; i++) {
@@ -240,6 +259,7 @@ function loadMarkPointsInfo() {
 loadMarkPointsInfo()
 
 const MEHistograms = new Array(MEConfigs.length).fill(0).map(() => { return new Histogram() })
+const MEHistograms2 = new Array(MEConfigs.length).fill(0).map(() => { return new Histogram() })
 
 let fetcher = null
 
@@ -262,34 +282,128 @@ function listener(event, arg) {
   else console.log(event + ', ' + arg);
 }
 
+function maxYInTraces(traceList) {
+  let m = 0
+  for (const t of traceList) {
+    if (Array.isArray(t.y) && t.y.length) m = Math.max(m, ...t.y)
+  }
+  return m
+}
+
+/** Plot title: capitalize first letter of each whitespace-separated word. */
+function chartTitleDisplay(raw) {
+  if (raw == null || raw === '') return ''
+  return String(raw)
+    .split(/\s+/)
+    .map((w) => (w.length ? w[0].toUpperCase() + w.slice(1).toLowerCase() : w))
+    .join(' ')
+}
+
+/** Legend label: Configuration.SignalChannel as CHxx, else CH01 / CH02 from stream index. */
+function formatEncodingChannelLabel(encodingData, streamIndex) {
+  const ch = encodingData?.Configuration?.SignalChannel
+  if (ch !== undefined && ch !== null) {
+    const n = Number(ch)
+    if (!Number.isNaN(n)) return 'CH' + String(Math.trunc(n)).padStart(2, '0')
+  }
+  return 'CH' + String(streamIndex).padStart(2, '0')
+}
+
+/** Title legend: Alice (CHxx)  Bob (CHxx); colors match traces. */
+function formatEncodingTitleLegendHtml(meData, meData2) {
+  if (!meData) return ''
+  const chAlice = formatEncodingChannelLabel(meData, 1)
+  if (meData2) {
+    const chBob = formatEncodingChannelLabel(meData2, 2)
+    return `<span style="color:#2874A6">Alice (${chAlice})</span>  <span style="color:#C0392B">Bob (${chBob})</span>`
+  }
+  return `<span style="color:#2874A6">Alice (${chAlice})</span>`
+}
+
+/** Combined Sync Alice + Sync Bob: channel from each block's Configuration.SignalChannel. */
+function formatSyncAliceBobLegendHtml(syncAliceData, syncBobData) {
+  const chA = formatEncodingChannelLabel(syncAliceData, 1)
+  const chB = formatEncodingChannelLabel(syncBobData, 2)
+  return `<span style="color:#2874A6">Alice (${chA})</span>  <span style="color:#C0392B">Bob (${chB})</span>`
+}
+
+function getChartLegendHtml(chartIndex, result, meData, meData2) {
+  if (!result) return ''
+  const id = MEConfigs[chartIndex][1]
+  if (id === 'moSyncMonitors') {
+    return formatSyncAliceBobLegendHtml(
+      result['Data']['TFQKDSyncAliceMonitor'],
+      result['Data']['TFQKDSyncBobMonitor'],
+    )
+  }
+  if (id === 'moSyncAliceBob') {
+    return formatSyncAliceBobLegendHtml(
+      result['Data']['TFQKDSyncAlice'],
+      result['Data']['TFQKDSyncBob'],
+    )
+  }
+  if (id.startsWith('me')) {
+    return formatEncodingTitleLegendHtml(meData, meData2)
+  }
+  if (id.startsWith('mo')) {
+    const name = MEConfigs[chartIndex][2][0]
+    const moData = result['Data']['TFQKD' + name.replaceAll(' ', '')]
+    const ch = formatEncodingChannelLabel(moData, 1)
+    const label = MEConfigs[chartIndex][0].replace(/^Sync /i, '')
+    return `<span style="color:#2874A6">${label} (${ch})</span>`
+  }
+  return ''
+}
+
 function plot(result, append) {
   const layout = {
     xaxis: { title: 'Time (ns)' },
     yaxis: { title: 'Count' },
-    margin: { l: 50, r: 30, b: 50, t: 30, pad: 4 },
+    margin: { l: 50, r: 30, b: 50, t: 32, pad: 4 },
     // width: 300,
     height: 250,
     showlegend: false,
     autosize: true,
   }
-  const traces = []
+  const chartTraces = []
+  let meData = null
+  let meData2 = null
   if (result == null) {
-    for (const histogram of MEHistograms) {
-      histogram.clear()
-      traces.push({ x: [0], y: [0], type: 'scatter', name: '' })
+    for (const histogram of MEHistograms) histogram.clear()
+    for (const histogram of MEHistograms2) histogram.clear()
+    for (let i = 0; i < MEConfigs.length; i++) {
+      chartTraces.push([{ x: [0], y: [0], type: 'scatter', name: '', showlegend: false }])
     }
   } else {
     const configuration = result['Data']['TFQKDEncoding']['Configuration']
     const xs = linspace(0, configuration['Period'] / 1000.0, configuration['BinCount'])
     let histogramXsMatched = true
-    if (!append) MEHistograms.map(h => h.clear())
-    const meData = result['Data']['TFQKDEncoding']
+    if (!append) {
+      MEHistograms.forEach(h => h.clear())
+      MEHistograms2.forEach(h => h.clear())
+    }
+    meData = result['Data']['TFQKDEncoding']
+    meData2 = result['Data']?.['TFQKDEncoding2']
     for (const i in MEConfigs) {
       const hisIs = MEConfigs[i][2]
-      if (MEConfigs[i][1].startsWith('me')) {
+      const rowId = MEConfigs[i][1]
+      if (rowId === 'moSyncAliceBob' || rowId === 'moSyncMonitors') {
+        for (var j = 0; j < hisIs.length; j++) {
+          const syncName = hisIs[j]
+          var moDataAb = result['Data']['TFQKD' + syncName.replaceAll(' ', '')]
+          var moXsAb = linspace(0, moDataAb['Configuration']['Period'] / 1000.0, moDataAb['Configuration']['BinCount'])
+          var hisAb = moDataAb['Histogram[' + syncName + ']']
+          if (j === 0) MEHistograms[i].append(moXsAb, hisAb)
+          else MEHistograms2[i].append(moXsAb, hisAb)
+        }
+      } else if (rowId.startsWith('me')) {
         for (var j = 0; j < hisIs.length; j++) {
           var his = meData['Histogram[' + hisIs[j] + ']']
           MEHistograms[i].append(xs, his)
+          if (meData2) {
+            var his2 = meData2['Histogram[' + hisIs[j] + ']']
+            MEHistograms2[i].append(xs, his2)
+          }
         }
       } else {
         var moData = result['Data']['TFQKD' + MEConfigs[i][2][0].replaceAll(' ', '')]
@@ -297,21 +411,70 @@ function plot(result, append) {
         var his = moData['Histogram[' + MEConfigs[i][2][0] + ']']
         MEHistograms[i].append(moXs, his)
       }
-      traces.push({
-        x: MEHistograms[i].xs,
-        y: MEHistograms[i].ys,
-        type: 'scatter',
-        name: 'Trace',
-        line: { color: '#2874A6' }
-      })
+      const lineTraces = []
+      if (rowId.startsWith('me')) {
+        lineTraces.push({
+          x: MEHistograms[i].xs,
+          y: MEHistograms[i].ys,
+          type: 'scatter',
+          mode: 'lines',
+          line: { color: '#2874A6' },
+          showlegend: false,
+        })
+        if (meData2) {
+          lineTraces.push({
+            x: MEHistograms2[i].xs,
+            y: MEHistograms2[i].ys,
+            type: 'scatter',
+            mode: 'lines',
+            line: { color: '#C0392B' },
+            showlegend: false,
+          })
+        }
+      } else if (rowId === 'moSyncAliceBob' || rowId === 'moSyncMonitors') {
+        lineTraces.push(
+          {
+            x: MEHistograms[i].xs,
+            y: MEHistograms[i].ys,
+            type: 'scatter',
+            mode: 'lines',
+            line: { color: '#2874A6' },
+            showlegend: false,
+          },
+          {
+            x: MEHistograms2[i].xs,
+            y: MEHistograms2[i].ys,
+            type: 'scatter',
+            mode: 'lines',
+            line: { color: '#C0392B' },
+            showlegend: false,
+          },
+        )
+      } else {
+        lineTraces.push({
+          x: MEHistograms[i].xs,
+          y: MEHistograms[i].ys,
+          type: 'scatter',
+          mode: 'lines',
+          line: { color: '#2874A6' },
+          showlegend: false,
+        })
+      }
+      chartTraces.push(lineTraces)
     }
     for (var i = 0; i < MEHistograms.length; i++) {
       histogramXsMatched &= MEHistograms[i].xsMatch
+      const rid = MEConfigs[i][1]
+      if (rid === 'moSyncAliceBob' || rid === 'moSyncMonitors') {
+        histogramXsMatched &= MEHistograms2[i].xsMatch
+      } else if (rid.startsWith('me') && meData2) {
+        histogramXsMatched &= MEHistograms2[i].xsMatch
+      }
     }
     listener('HistogramXsMatched', histogramXsMatched)
 
     // deal with reports
-    updateReports(result, MEHistograms)
+    updateReports(result)
   }
 
   const fillTrace = []
@@ -324,14 +487,55 @@ function plot(result, append) {
       mode: 'none',
       hoverinfo: 'none',
       fillcolor: markPoint[2],
+      showlegend: false,
     })
   }
 
   for (let i = 0; i < MEConfigs.length; i++) {
-    layout['title'] = MEConfigs[i][0]
-    layout['yaxis']['range'] = [0, Math.max(...traces[i]['y']) * 1.05]
+    const baseTitle = chartTitleDisplay(MEConfigs[i][0])
+    const titleLegendHtml = getChartLegendHtml(i, result, meData, meData2)
+    if (titleLegendHtml) {
+      layout.title = { text: '' }
+      layout.annotations = [
+        {
+          showarrow: false,
+          cliponaxis: false,
+          xref: 'paper',
+          yref: 'paper',
+          x: 0.5,
+          y: 1.05,
+          xanchor: 'center',
+          yanchor: 'bottom',
+          text: baseTitle,
+          font: { size: 14, color: '#2c3e50', weight: 'bold' },
+        },
+        {
+          showarrow: false,
+          cliponaxis: false,
+          xref: 'paper',
+          yref: 'paper',
+          x: 1,
+          y: 1.05,
+          xanchor: 'right',
+          yanchor: 'bottom',
+          text: titleLegendHtml,
+          font: { size: 12 },
+        },
+      ]
+    } else {
+      layout.title = {
+        text: baseTitle,
+        x: 0.5,
+        xanchor: 'center',
+        font: { size: 14, color: '#2c3e50', weight: 'bold' },
+      }
+      layout.annotations = []
+    }
+    layout['showlegend'] = false
+    const yMax = maxYInTraces(chartTraces[i])
+    layout['yaxis']['range'] = [0, yMax * 1.05]
     const div = MEConfigs[i][1]
-    const data = fillTrace.concat([traces[i]])
+    const data = fillTrace.concat(chartTraces[i])
     Plotly.react(div, data, layout, {
       displaylogo: false,
       responsive: true
@@ -340,8 +544,7 @@ function plot(result, append) {
   }
 }
 
-async function updateReports(result, histograms) {
-  const regionValues = calculateRegionValues(result, MEHistograms)
+function fillReportColumn(reportRef, regionValues) {
   const signalPulseExtinctionRatio = (regionValues['All Signals'][0] / regionValues['All Signals'][1])
   const vacuumsCountRate = regionValues['Vacuum'][0] / regionValues['Vacuum'][2]
   const ZCountRate = regionValues['Z'][0] / regionValues['Z'][2]
@@ -349,19 +552,37 @@ async function updateReports(result, histograms) {
   const YCountRate = regionValues['Y'][0] / regionValues['Y'][2]
   const signalRefRatioInPulse = (regionValues['All Signals'][0] / regionValues['All Signals'][2] / regionValues['All Ref'][0] * regionValues['All Ref'][2])
 
-  reportInfos.value[0].value = (10 * Math.log10(signalPulseExtinctionRatio)).toFixed(3) + ' dB'
-  reportInfos.value[1].value = (10 * Math.log10(vacuumsCountRate / (ZCountRate))).toFixed(2) + ' dB'
-  reportInfos.value[2].value = (XCountRate / ZCountRate).toFixed(3)
-  reportInfos.value[3].value = (YCountRate / ZCountRate).toFixed(3)
-  reportInfos.value[4].value = (10 * Math.log10(signalRefRatioInPulse)).toFixed(3) + ' dB'
+  reportRef.value[0].value = (10 * Math.log10(signalPulseExtinctionRatio)).toFixed(3) + ' dB'
+  reportRef.value[1].value = (10 * Math.log10(vacuumsCountRate / (ZCountRate))).toFixed(2) + ' dB'
+  reportRef.value[2].value = (XCountRate / ZCountRate).toFixed(3)
+  reportRef.value[3].value = (YCountRate / ZCountRate).toFixed(3)
+  reportRef.value[4].value = (10 * Math.log10(signalRefRatioInPulse)).toFixed(3) + ' dB'
 }
 
-function calculateRegionValues(result, histograms) {
+function updateReports(result) {
+  const regionAlice = calculateRegionValues(result, MEHistograms, 'TFQKDEncoding')
+  fillReportColumn(reportInfosAlice, regionAlice)
+  const enc2 = result['Data']?.['TFQKDEncoding2']
+  if (enc2) {
+    const regionBob = calculateRegionValues(result, MEHistograms2, 'TFQKDEncoding2')
+    fillReportColumn(reportInfosBob, regionBob)
+  } else {
+    for (const row of reportInfosBob.value) row.value = ''
+  }
+}
+
+function calculateRegionValues(result, histograms, encodingKey) {
   const regionValues = {}
+  const enc = result['Data']?.[encodingKey]
   const regionWidths = markPoints.map(markPoint => markPoint[1] - markPoint[0])
   MEConfigs.map((config, i) => {
     const regionValue = markPoints.map(markPoint => histograms[i].xs.map((x, j) => [x, histograms[i].ys[j]]).filter(z => z[0] >= markPoint[0] && z[0] < markPoint[1]).map(z => z[1]).reduce((a, b) => a + b, 0))
-    const correspondingPulseCount = config[2].map(r => result['Data']['TFQKDEncoding']['PulseCount[' + r + ']']).reduce((a, b) => a + b, 0)
+    const correspondingPulseCount = enc
+      ? config[2].map(r => {
+        const v = enc['PulseCount[' + r + ']']
+        return v != null && !Number.isNaN(v) ? v : 0
+      }).reduce((a, b) => a + b, 0)
+      : 0
     return regionValue.map((v, i) => v / regionWidths[i]).concat([correspondingPulseCount])
   }).map((v, i) => regionValues[MEConfigs[i][0]] = v)
   return regionValues
@@ -432,6 +653,18 @@ function calculateRegionValues(result, histograms) {
   display: grid
   grid-template-columns: repeat(auto-fill, minmax(500px, 1fr))
   gap: 10px
+
+.report-col-head
+  font-weight: 600
+
+.report-metric-row
+  margin-top: 8px
+  margin-bottom: 0px
+  padding-left: 4px
+  padding-right: 4px
+  align-items: center
+  width: 100%
+  max-width: 480px
 
 :deep(.bg-btn-positive)
   background: rgb(27,200,139)

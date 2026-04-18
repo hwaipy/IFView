@@ -32,6 +32,13 @@
         },
         {
           "type": "application/page",
+          "name": "encoding20",
+          "label": "Encoding 2.0",
+          "icon": "leaderboard",
+          "href": "#/tdcencoding20?experiment=7km&collection=TFQKD_TDC"
+        },
+        {
+          "type": "application/page",
           "name": "process",
           "label": "Process",
           "icon": "checklist",
