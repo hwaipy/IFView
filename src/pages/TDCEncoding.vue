@@ -1,7 +1,7 @@
 <template>
   <div class="tdc-encoding-page">
   <q-card class="histogram-card" bordered>
-    <q-card-section class="bg-card-head" style="height: 48px; padding-left: 16px; padding-top: 0px;">
+    <q-card-section class="bg-card-head encoding-histogram-head" style="padding-left: 16px; padding-top: 0px; padding-bottom: 8px;">
       <div class="row">
         <q-item-label class="text-h6" style="margin-top: 12px;">Encoding Histograms</q-item-label>
         <div class="" style="margin-left: 10px; margin-top: 6px">
@@ -13,6 +13,11 @@
           <q-icon color="red" size="xs" :name="'warning'" style="padding-right: 8px;" />
           The most recent data was fetched {{ numberFormat.format(parseInt(fetchTimeDelta / 1000)) }} s ago.
         </div>
+      </div>
+      <div class="encoding-deprecation-hint q-mt-sm">
+        This page is about to be deprecated, please use page
+        <router-link :to="encoding2Location">Encoding 2.0</router-link>
+        instead.
       </div>
     </q-card-section>
     <q-separator v-if="histogramMode == 'review'" />
@@ -143,7 +148,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { useRoute } from 'vue-router'
 import { Histogram, TDCStorageStreamFetcher, linspace, parseDateString } from '../services/IFExp'
 import moment from 'moment';
@@ -152,6 +157,10 @@ import { loadConfig } from 'src/services/Config';
 import { renderAccessMarkdown } from 'src/utils/accessMarkdown';
 import { enhanceMarkdownFenceCopyButtons } from 'src/utils/accessMarkdownFenceEnhance';
 const route = useRoute()
+const encoding2Location = computed(() => ({
+  path: '/tdcencoding20',
+  query: { ...route.query },
+}))
 const numberFormat = new Intl.NumberFormat('ja-JP')
 let workerTDC = null
 
@@ -657,6 +666,18 @@ function calculateRegionValues(result, histograms) {
   background: rgb(133,135,150)
 :deep(.bg-card-head)
   background: rgb(244,245,248)
+
+.encoding-deprecation-hint
+  padding-left: 2px
+  font-size: 1rem
+  line-height: 1.45
+  font-weight: 600
+  color: #e65100
+  :deep(a)
+    color: #1565c0
+    font-weight: 700
+    text-decoration: underline
+    text-underline-offset: 2px
 
 :deep(.row)
   margin-left: 0px
