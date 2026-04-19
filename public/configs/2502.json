@@ -124,16 +124,10 @@
       "AccessField": "code.qpqi.group:1161"
     },
     {
-      "ServiceName": "(http) Raw Data",
+      "ServiceName": "Raw Data",
       "AccessLab": "192.168.25.5:1000",
       "AccessCampus": "172.20.8.102:1001",
       "AccessField": "code.qpqi.group:1001"
-    },
-    {
-      "ServiceName": "(http) Temp Raw Data",
-      "AccessLab": "192.168.25.7:1000",
-      "AccessCampus": "-",
-      "AccessField": "-"
     },
     {
       "ServiceName": "Archived Data (Meta)",

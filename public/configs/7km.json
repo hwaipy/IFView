@@ -77,51 +77,69 @@
     },
     {
       "ServiceName": "IF Broker (Charlie)",
-      "AccessLab": "-",
+      "AccessLab": "192.168.0.5:1061 (from 7 km)",
       "AccessCampus": "-",
       "AccessField": "code.qpqi.group:1261"
     },
     {
-      "ServiceName": "Raw Data (datablock)",
-      "AccessLab": "-",
-      "AccessCampus": "-",
-      "AccessField": "code.qpqi.group:1001"
-    },
-    {
-      "ServiceName": "[VNC] Alice (wrong)",
-      "AccessLab": "192.168.25.36(:5900)",
-      "AccessCampus": "-",
+      "ServiceName": "[VNC] Alice",
+      "AccessLab": "192.168.25.10(:5900)",
+      "AccessCampus": "172.20.8.102:50036",
       "AccessField": "vnc.qpqi.group:50036"
     },
     {
-      "ServiceName": "[VNC] Bob (wrong)",
+      "ServiceName": "[VNC] Bob",
       "AccessLab": "192.168.25.37(:5900)",
-      "AccessCampus": "-",
+      "AccessCampus": "172.20.8.102:50037",
       "AccessField": "vnc.qpqi.group:50037"
     },
     {
-      "ServiceName": "[VNC] Calvin (wrong)",
-      "AccessLab": "192.168.25.38(:5900)",
+      "ServiceName": "[VNC] Charlie",
+      "AccessLab": "192.168.0.35(:5900) (from 7 km)",
       "AccessCampus": "-",
-      "AccessField": "vnc.qpqi.group:50038"
+      "AccessField": "vnc.qpqi.group:50035"
     },
     {
-      "ServiceName": "[VNC] Alice Sender (wrong)",
-      "AccessLab": "192.168.25.40(:5900)",
-      "AccessCampus": "-",
-      "AccessField": "vnc.qpqi.group:50040"
+      "ServiceName": "[VNC] Alice AWG70k",
+      "AccessLab": "192.168.25.51(:5900)",
+      "AccessCampus": "172.20.8.102:50051",
+      "AccessField": "vnc.qpqi.group:50051"
     },
     {
-      "ServiceName": "[VNC] Bob Sender (wrong)",
-      "AccessLab": "192.168.25.41(:5900)",
-      "AccessCampus": "-",
-      "AccessField": "vnc.qpqi.group:50041"
+      "ServiceName": "[VNC] Bob AWG70k",
+      "AccessLab": "192.168.25.52(:5900)",
+      "AccessCampus": "172.20.8.102:50052",
+      "AccessField": "vnc.qpqi.group:50052"
     },
     {
-      "ServiceName": "[VNC] Calvin Server (wrong)",
-      "AccessLab": "192.168.25.5(:5900)",
+      "ServiceName": "[VNC] Calvin Server",
+      "AccessLab": "192.168.0.5(:5900) (from 7 km)",
       "AccessCampus": "-",
-      "AccessField": "vnc.qpqi.group:50138"
+      "AccessField": "vnc.qpqi.group:50135"
+    },
+    {
+      "ServiceName": "Meta Data",
+      "AccessLab": "192.168.0.5:1061 (from 7 km)",
+      "AccessCampus": "-",
+      "AccessField": "code.qpqi.group:1261"
+    },
+    {
+      "ServiceName": "Raw Data",
+      "AccessLab": "192.168.0.5:1000 (from 7 km)",
+      "AccessCampus": "-",
+      "AccessField": "code.qpqi.group:1018"
+    },
+    {
+      "ServiceName": "Archived Data (Meta)",
+      "AccessLab": "-",
+      "AccessCampus": "172.20.8.102:1061",
+      "AccessField": "code.qpqi.group:1061"
+    },
+    {
+      "ServiceName": "Archived Data (Raw)",
+      "AccessLab": "-",
+      "AccessCampus": "172.20.8.104:1002",
+      "AccessField": "code.qpqi.group:1002"
     }
   ]
 }
