@@ -1,4 +1,4 @@
-# How to use this page (this page is about to be deprecated, please use page Encoding2 instead.)
+# How to use this page
 
 TDCEncoding 用于呈现 QKD 编码的结果。在指定了 trigger 通道和 signal 通道后，各图中将分别呈现不同编码随机数的脉冲直方图。
 
@@ -30,7 +30,7 @@ TDCEncoding 用于呈现 QKD 编码的结果。在指定了 trigger 通道和 si
 
 具体的实现细节可参考 GitHub [hwaipy/PyTimeTag](https://github.com/hwaipy/PyTimeTag) 中的 [EncodingAnalyser.py](https://github.com/hwaipy/PyTimeTag/blob/main/pytimetag/analysers/EncodingAnalyser.py)。
 
-本页共包含 11 个子图，其中前 7 个（All Pulses, All Signals, All Ref, Vacuum, X, Y, Z）通过名为 `TFQKDEncoding` 的 `EncodingAnalyser` 定义和配置，Sync Alice、Sync Bob、Sync Alice Monitor、Sync Bob Monitor 这 4 个子图分别由名为 `TFQKDSyncAlice`、`TFQKDSyncBob`、`TFQKDSyncAliceMonitor` 和 `TFQKDSyncBobMonitor` 的 `EncodingAnalyser` 定义和配置。
+本页共包含 9 个子图，其中前 7 个（All Pulses, All Signals, All Ref, Vacuum, X, Y, Z）通过名为 `TFQKDEncoding`（蓝色曲线，代表 Alice） 和 `TFQKDEncoding2`（红色曲线，代表 Bob） 的 `EncodingAnalyser` 定义和配置，Sync 图由名为 `TFQKDSyncAlice` 和 `TFQKDSyncBob` 的 `EncodingAnalyser` 定义和配置。
 
 配置相关参数的示例程序：
 
@@ -39,14 +39,15 @@ from interactionfreepy import IFWorker
 worker = IFWorker('tcp://192.168.25.5:1061') # 根据实际情况设定 ip 和 port
 tdc = worker.TFTDCServer # 根据实际情况指定 TDCServer 的服务名
 
+# 用于监测 Alice 编码状态
 tdc.configureAnalyser(
     'TFQKDEncoding', # 根据实际情况指定 HistogramAnalyser 的名称
     {
-        'Period': 10000,
-        'TriggerChannel': 1,
-        'SignalChannel': 2,
-        'RandomNumbers': rns, # 根据实际情况指定随机数
-        'PulsePerTrigger': 100000000,
+        'Period': 5000,
+        'TriggerChannel': 0,
+        'SignalChannel': 4, # 根据实际情况指定通道，这里使用了 Alice Sync 通道，实现只看 Alice 脉冲的效果
+        'RandomNumbers': rnsAlice, # 根据实际情况指定随机数
+        'PulsePerTrigger': 8000,
         'Histograms': {
             'All Pulses': [i for i in range(128)],
             'All Signals': [i for i in range(64)],
@@ -59,10 +60,32 @@ tdc.configureAnalyser(
     }
 )
 
+# 用于监测 Bob 编码状态
+tdc.configureAnalyser(
+    'TFQKDEncoding2', # 根据实际情况指定 HistogramAnalyser 的名称
+    {
+        'Period': 5000,
+        'TriggerChannel': 0,
+        'SignalChannel': 5, # 根据实际情况指定通道，这里使用了 Bob Sync 通道，实现只看 Bob 脉冲的效果
+        'RandomNumbers': rnsBob, # 根据实际情况指定随机数
+        'PulsePerTrigger': 8000,
+        'Histograms': {
+            'All Pulses': [i for i in range(128)],
+            'All Signals': [i for i in range(64)],
+            'All Ref': [i + 64 for i in range(64)],
+            'Vacuum': [i for i in range(64) if i % 4 == 0],
+            'X': [i for i in range(64) if i % 4 == 1],
+            'Y': [i for i in range(64) if i % 4 == 2],
+            'Z': [i for i in range(64) if i % 4 == 3],
+        }
+    }
+)
+
+# 用于监测 Alice 同步状态
 tdc.configureAnalyser(
     'TFQKDSyncAlice',
     {
-        'Period': 10000,
+        'Period': 5000,
         'TriggerChannel': 0,
         'SignalChannel': 4,
         'RandomNumbers': [0],
@@ -72,41 +95,16 @@ tdc.configureAnalyser(
     }
 )
 
+# 用于监测 Bob 同步状态
 tdc.configureAnalyser(
     'TFQKDSyncBob',
     {
-        'Period': 10000,
+        'Period': 5000,
         'TriggerChannel': 0,
         'SignalChannel': 5,
         'RandomNumbers': [0],
         'Histograms': {
             'Sync Bob': [i for i in range(64)]
-        }
-    }
-)
-
-tdc.configureAnalyser(
-    'TFQKDSyncAliceMonitor',
-    {
-        'Period': 10000,
-        'TriggerChannel': 0,
-        'SignalChannel': 4,
-        'RandomNumbers': [0],
-        'Histograms': {
-            'Sync Alice Monitor': [i for i in range(64)]
-        }
-    }
-)
-
-tdc.configureAnalyser(
-    'TFQKDSyncBobMonitor',
-    {
-        'Period': 10000,
-        'TriggerChannel': 0,
-        'SignalChannel': 5,
-        'RandomNumbers': [0],
-        'Histograms': {
-            'Sync Bob Monitor': [i for i in range(64)]
         }
     }
 )
