@@ -55,6 +55,7 @@ import {
   buildPlaceholderPythonSnippet,
   patchShowCodeNetworkButtons,
 } from 'src/utils/accessNetworkSnippet'
+import { enhanceMarkdownFenceCopyButtons } from 'src/utils/accessMarkdownFenceEnhance'
 import { loadConfig } from 'src/services/Config'
 import hljs from 'highlight.js/lib/core'
 
@@ -152,50 +153,6 @@ function isMissingMdResponse(status) {
 
 const mdBodyEl = ref(null)
 
-function fenceCodeText(pre) {
-  const code = pre.querySelector(':scope > code')
-  return code != null ? code.innerText : pre.innerText
-}
-
-async function copyFenceCode(pre, btn) {
-  const label = btn.textContent
-  try {
-    await navigator.clipboard.writeText(fenceCodeText(pre))
-    btn.textContent = '已复制'
-    window.setTimeout(() => {
-      btn.textContent = label
-    }, 1800)
-  } catch {
-    btn.textContent = '复制失败'
-    window.setTimeout(() => {
-      btn.textContent = label
-    }, 2000)
-  }
-}
-
-function enhanceCodeBlockCopyButtons() {
-  const root = mdBodyEl.value
-  if (!root) return
-  root.querySelectorAll('pre').forEach((pre) => {
-    if (pre.closest('.access-md-pre-wrap')) return
-    if (!pre.querySelector(':scope > code')) return
-    const wrap = document.createElement('div')
-    wrap.className = 'access-md-pre-wrap'
-    const btn = document.createElement('button')
-    btn.type = 'button'
-    btn.className = 'access-md-copy-btn'
-    btn.textContent = '复制'
-    btn.setAttribute('aria-label', '复制代码')
-    pre.parentNode.insertBefore(wrap, pre)
-    wrap.appendChild(btn)
-    wrap.appendChild(pre)
-    btn.addEventListener('click', (e) => {
-      e.preventDefault()
-      void copyFenceCode(pre, btn)
-    })
-  })
-}
-
 async function loadMarkdown() {
   mdError.value = ''
   mdHtml.value = ''
@@ -274,7 +231,7 @@ watch(
     await nextTick()
     if (mdLoading.value || mdError.value || mdMissing.value || !mdHtml.value) return
     patchShowCodeNetworkButtons(mdBodyEl.value, lastMdConfigJson.value)
-    enhanceCodeBlockCopyButtons()
+    enhanceMarkdownFenceCopyButtons(mdBodyEl.value)
   }
 )
 
@@ -303,7 +260,8 @@ onUnmounted(() => {
   padding-top: 12px
 
 .access-md-body
-  max-width: 960px
+  width: 100%
+  box-sizing: border-box
   :deep(h1), :deep(h2), :deep(h3)
     margin: 0.75em 0 0.35em
     font-weight: 600
@@ -327,6 +285,37 @@ onUnmounted(() => {
     background: rgba(0, 0, 0, 0.06)
     font-size: 0.85rem
     line-height: 1.45
+  :deep(.access-md-fence-block)
+    margin: 0.65em 0
+    border-radius: 6px
+    overflow: hidden
+    background: rgba(0, 0, 0, 0.06)
+  :deep(.access-md-fence-header)
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+    padding: 6px 12px
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08)
+    font-family: ui-sans-serif, system-ui, sans-serif
+  :deep(.access-md-fence-title)
+    flex: 1
+    min-width: 0
+    font-size: 12px
+    line-height: 1.35
+    font-weight: 600
+    color: rgba(0, 0, 0, 0.55)
+  :deep(.access-md-fence-header .access-md-copy-btn)
+    position: static
+    flex-shrink: 0
+  :deep(.access-md-fence-block .access-md-pre-wrap)
+    margin: 0
+    border-radius: 0
+    background: transparent
+  :deep(.access-md-fence-block pre.access-md-fence)
+    margin: 0
+  :deep(.access-md-fence-block .access-md-pre-wrap pre)
+    padding: 10px 12px
   :deep(pre.access-md-fence)
     margin: 0.65em 0
     padding: 0
@@ -384,10 +373,23 @@ onUnmounted(() => {
   :deep(code)
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace
     font-size: 0.9em
+  :deep(.katex)
+    font-size: 1em
+  :deep(.katex-display > .katex)
+    font-size: 1.21em
   :deep(p code), :deep(li code)
     padding: 0.1em 0.35em
     border-radius: 4px
     background: rgba(0, 0, 0, 0.06)
+    color: var(--pink, #e83e8c)
+  :deep(.katex .mathtt),
+  :deep(.katex .texttt)
+    padding: 0.1em 0.35em
+    border-radius: 4px
+    background: rgba(0, 0, 0, 0.06)
+    color: var(--pink, #e83e8c)
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace
+    font-size: 0.9em
   :deep(pre code)
     padding: 0
   :deep(blockquote)
@@ -402,6 +404,10 @@ onUnmounted(() => {
   :deep(th), :deep(td)
     border: 1px solid rgba(0, 0, 0, 0.12)
     padding: 6px 10px
+  :deep(.katex-display)
+    overflow-x: auto
+    overflow-y: hidden
+    padding: 0.35em 0
 
 .access-code-dialog-card
   min-width: min(560px, 96vw)

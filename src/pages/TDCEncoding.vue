@@ -1,4 +1,5 @@
 <template>
+  <div class="tdc-encoding-page">
   <q-card class="histogram-card" bordered>
     <q-card-section class="bg-card-head" style="height: 48px; padding-left: 16px; padding-top: 0px;">
       <div class="row">
@@ -117,15 +118,39 @@
       </q-card>
     </q-card-section>
   </q-card>
+  <q-card class="tdc-viewer-help-card" bordered>
+    <q-card-section class="bg-card-head tdc-viewer-help-head row items-center no-wrap"
+      style="padding-left: 16px; padding-right: 8px; min-height: 48px">
+      <q-item-label class="text-h6">Help</q-item-label>
+      <q-space />
+      <q-btn flat dense round :icon="helpExpanded ? 'expand_less' : 'expand_more'" color="grey-8"
+        @click="toggleHelpExpanded" aria-label="Toggle help panel">
+        <q-tooltip anchor="center left" self="center right">{{ helpExpanded ? 'Collapse' : 'Expand' }}</q-tooltip>
+      </q-btn>
+    </q-card-section>
+    <q-slide-transition>
+      <div v-show="helpExpanded">
+        <q-separator />
+        <q-card-section class="tdc-viewer-help-section">
+          <q-banner v-if="helpMdError" dense class="bg-warning text-dark">{{ helpMdError }}</q-banner>
+          <div v-else-if="helpMdLoading" class="text-grey-7 q-py-sm">Loading…</div>
+          <div v-else ref="helpMdBodyEl" class="tdc-viewer-md-body" v-html="helpMdHtml"></div>
+        </q-card-section>
+      </div>
+    </q-slide-transition>
+  </q-card>
+  </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { useRoute } from 'vue-router'
 import { Histogram, TDCStorageStreamFetcher, linspace, parseDateString } from '../services/IFExp'
 import moment from 'moment';
 import Plotly from 'plotly.js-dist-min'
 import { loadConfig } from 'src/services/Config';
+import { renderAccessMarkdown } from 'src/utils/accessMarkdown';
+import { enhanceMarkdownFenceCopyButtons } from 'src/utils/accessMarkdownFenceEnhance';
 const route = useRoute()
 const numberFormat = new Intl.NumberFormat('ja-JP')
 let workerTDC = null
@@ -149,6 +174,61 @@ const reviewDataPreparing = ref(false)
 const reviewError = ref({ tooManyRecords: false, XsNotMatched: false })
 
 const fetchTimeDelta = ref(-1)
+
+const HELP_EXPANDED_STORAGE_KEY = 'tdcencoding_help_expanded'
+
+function loadHelpExpandedPreference() {
+  try {
+    const raw = localStorage.getItem(HELP_EXPANDED_STORAGE_KEY)
+    if (raw === null) return true
+    return raw === '1' || raw === 'true'
+  } catch {
+    return true
+  }
+}
+
+const helpExpanded = ref(loadHelpExpandedPreference())
+
+function toggleHelpExpanded() {
+  helpExpanded.value = !helpExpanded.value
+  try {
+    localStorage.setItem(HELP_EXPANDED_STORAGE_KEY, helpExpanded.value ? '1' : '0')
+  } catch {
+    /* ignore */
+  }
+}
+
+const helpMdHtml = ref('')
+const helpMdError = ref('')
+const helpMdLoading = ref(false)
+const helpMdBodyEl = ref(null)
+
+watch([helpMdHtml, helpMdLoading, helpMdError], async () => {
+  await nextTick()
+  if (helpMdLoading.value || helpMdError.value || !helpMdHtml.value.trim()) return
+  enhanceMarkdownFenceCopyButtons(helpMdBodyEl.value)
+})
+
+async function loadHelpMarkdown() {
+  helpMdError.value = ''
+  helpMdHtml.value = ''
+  helpMdLoading.value = true
+  const path = '/configs/TDCEncoding.md'
+  try {
+    const res = await fetch(path + '?t=' + Date.now())
+    if (!res.ok) {
+      helpMdError.value = `Could not load help (HTTP ${res.status}): ${path}`
+      return
+    }
+    const raw = await res.text()
+    const html = await renderAccessMarkdown(raw)
+    helpMdHtml.value = typeof html === 'string' ? html : String(html)
+  } catch (e) {
+    helpMdError.value = 'Failed to load help: ' + (e && e.message ? e.message : String(e))
+  } finally {
+    helpMdLoading.value = false
+  }
+}
 
 watch(histogramMode, (newVelue) => {
   fetcher.changeMode(newVelue == 'review' ? "Stop" : "Instant")
@@ -244,6 +324,7 @@ const MEHistograms = new Array(MEConfigs.length).fill(0).map(() => { return new 
 let fetcher = null
 
 onMounted(async () => {
+  void loadHelpMarkdown()
   const experimentConfig = await loadConfig()
   workerTDC = experimentConfig.workers.TDC
   fetcher = new TDCStorageStreamFetcher(workerTDC, collection, 500, filter, plot, listener)
@@ -369,6 +450,143 @@ function calculateRegionValues(result, histograms) {
 
 </script>
 <style lang="sass" scoped>
+.tdc-encoding-page
+  display: flex
+  flex-direction: column
+  min-height: 0
+
+.tdc-viewer-help-card
+  margin: 8px
+  margin-top: 28px
+  :deep(.q-card__section--vert)
+    padding: 8px
+    padding-bottom: 8px
+
+.tdc-viewer-help-section
+  padding-top: 12px
+
+.tdc-viewer-md-body
+  width: 100%
+  box-sizing: border-box
+  :deep(h1), :deep(h2), :deep(h3)
+    margin: 0.75em 0 0.35em
+    font-weight: 600
+    line-height: 1.25
+  :deep(h1)
+    font-size: 1.35rem
+  :deep(h2)
+    font-size: 1.15rem
+  :deep(h3)
+    font-size: 1.05rem
+  :deep(p)
+    margin: 0.5em 0
+  :deep(ul), :deep(ol)
+    margin: 0.35em 0
+    padding-left: 1.35em
+  :deep(.access-md-fence-block)
+    margin: 0.65em 0
+    border-radius: 6px
+    overflow: hidden
+    background: rgba(0, 0, 0, 0.06)
+  :deep(.access-md-fence-header)
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 8px
+    padding: 6px 12px
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08)
+    font-family: ui-sans-serif, system-ui, sans-serif
+  :deep(.access-md-fence-title)
+    flex: 1
+    min-width: 0
+    font-size: 12px
+    line-height: 1.35
+    font-weight: 600
+    color: rgba(0, 0, 0, 0.55)
+  :deep(.access-md-fence-header .access-md-copy-btn)
+    position: static
+    flex-shrink: 0
+  :deep(.access-md-fence-block .access-md-pre-wrap)
+    margin: 0
+    border-radius: 0
+    background: transparent
+  :deep(.access-md-fence-block pre.access-md-fence)
+    margin: 0
+  :deep(.access-md-fence-block .access-md-pre-wrap pre)
+    padding: 10px 12px
+  :deep(pre.access-md-fence)
+    margin: 0.65em 0
+    padding: 0
+    overflow: visible
+    background: transparent
+    font-size: 0.85rem
+    line-height: 1.45
+  :deep(pre.access-md-fence code.hljs)
+    display: block
+    padding: 10px 12px
+    overflow-x: auto
+    border-radius: 6px
+  :deep(.access-md-pre-wrap)
+    position: relative
+    margin: 0.65em 0
+    border-radius: 6px
+    background: rgba(0, 0, 0, 0.06)
+  :deep(.access-md-pre-wrap pre)
+    margin: 0
+    padding: 38px 12px 10px 12px
+    overflow: auto
+    border-radius: 0
+    background: transparent
+    font-size: 0.85rem
+    line-height: 1.45
+  :deep(.access-md-copy-btn)
+    position: absolute
+    top: 8px
+    right: 8px
+    z-index: 1
+    font-size: 11px
+    line-height: 1.2
+    padding: 4px 10px
+    border-radius: 4px
+    border: 1px solid rgba(0, 0, 0, 0.12)
+    background: rgba(255, 255, 255, 0.9)
+    color: rgba(0, 0, 0, 0.75)
+    cursor: pointer
+  :deep(.access-md-copy-btn:hover)
+    background: #fff
+    border-color: rgba(0, 0, 0, 0.22)
+  :deep(code)
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace
+    font-size: 0.9em
+  :deep(.katex)
+    font-size: 1em
+  :deep(.katex-display > .katex)
+    font-size: 1.21em
+  :deep(p code), :deep(li code)
+    padding: 0.1em 0.35em
+    border-radius: 4px
+    background: rgba(0, 0, 0, 0.06)
+    color: var(--pink, #e83e8c)
+  :deep(.katex .mathtt),
+  :deep(.katex .texttt)
+    padding: 0.1em 0.35em
+    border-radius: 4px
+    background: rgba(0, 0, 0, 0.06)
+    color: var(--pink, #e83e8c)
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace
+    font-size: 0.9em
+  :deep(pre code)
+    padding: 0
+  :deep(blockquote)
+    margin: 0.65em 0
+    padding: 0.35em 0 0.35em 0.85em
+    border-left: 3px solid rgba(0, 0, 0, 0.2)
+    color: rgba(0, 0, 0, 0.65)
+  :deep(.katex-display)
+    overflow-x: auto
+    overflow-y: hidden
+    padding: 0.35em 0
+
 .channel-info-input
   height: 32px
   margin-top: 2px
