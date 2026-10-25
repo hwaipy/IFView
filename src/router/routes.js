@@ -4,6 +4,7 @@ const routes = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { path: '', meta: { title: 'InteractionFree View' }, component: () => import('pages/IndexPage.vue') },
+      { path: 'attsim', meta: { title: 'AttSim - InteractionFree View' }, component: () => import('pages/AttSim.vue') },
       { path: 'dashboard', meta: { title: 'Dashboard - InteractionFree View' }, component: () => import('pages/DashBoard.vue') },
       { path: 'tdcviewer', meta: { title: 'TDCViewer - InteractionFree View' }, component: () => import('pages/TDCViewer.vue') },
       { path: 'tdcencoding', meta: { title: 'TDCEncoding - InteractionFree View' }, component: () => import('pages/TDCEncoding.vue') },
