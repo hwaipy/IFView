@@ -39,6 +39,13 @@
         },
         {
           "type": "application/page",
+          "name": "encoding-for-test",
+          "label": "Encoding_for_test",
+          "icon": "leaderboard",
+          "href": "#/encoding_for_test?experiment=attsim&collection=TFQKD_TDC"
+        },
+        {
+          "type": "application/page",
           "name": "process",
           "label": "Process",
           "icon": "checklist",

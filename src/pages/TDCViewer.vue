@@ -189,6 +189,25 @@
           </div>
         </q-card-section>
       </q-card>
+      <q-card v-if="route.query.experiment === '7km'" class="count-ratio-card" bordered>
+        <q-item class="bg-card-head" style="padding-left: 16px">
+          <q-item-section>
+            <q-item-label class="text-h6">Count Ratio</q-item-label>
+          </q-item-section>
+        </q-item>
+        <q-separator />
+        <q-card-section class="count-ratio-grid">
+          <q-card v-for="ratio in channelCountRatios" :key="ratio.label"
+            class="row items-center no-wrap" style="padding-left: 4px; padding-right: 4px">
+            <div class="q-pa-md row histogram-info-label" style="font-weight: bold; margin-right: 4px;">
+              <div class="self-center">{{ ratio.label }}</div>
+              <q-tooltip>通道 {{ ratio.numeratorChannel }} 的计数 / 通道 {{ ratio.denominatorChannel }} 的计数</q-tooltip>
+            </div>
+            <q-input :model-value="ratio.value" class="channel-info-input channel-info-input-detail"
+              square outlined readonly input-class="text-right" />
+          </q-card>
+        </q-card-section>
+      </q-card>
     </template>
   </q-splitter>
   <q-card class="tdc-viewer-help-card" bordered>
@@ -216,7 +235,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import { computed, ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { useRoute } from 'vue-router'
 import { colors } from 'quasar'
 import { loadConfig } from 'src/services/Config';
@@ -238,6 +257,20 @@ let tdcServer = null
 
 const channelCount = 16
 const channelInfos = ref(Array(channelCount).fill(0).map((_, i) => { return { i: i, count: 0, formattedCount: '', delay: 0, formattedDelay: '', editing: false, isTrigger: false, isSignal: false, element: null } }))
+const countRatioPairs = [[2, 4], [3, 5], [3, 4], [2, 5], [2, 3], [4, 5]]
+const channelCountRatios = computed(() => countRatioPairs.map(([numeratorChannel, denominatorChannel]) => {
+  const numerator = channelInfos.value[numeratorChannel].count
+  const denominator = channelInfos.value[denominatorChannel].count
+  let value = '—'
+  if (Number.isFinite(numerator) && Number.isFinite(denominator)) {
+    if (denominator === 0) value = '∞'
+    else {
+      const ratio = numerator / denominator
+      if (Number.isFinite(ratio)) value = ratio.toFixed(4)
+    }
+  }
+  return { numeratorChannel, denominatorChannel, label: `CH${numeratorChannel}/CH${denominatorChannel}`, value }
+}))
 const histogramInfos = ref([
   { name: 'trigger', 'label': 'Trigger', tail: '', keyInServer: 'Sync', format: (_) => _, parse: (_) => parseInt(_) },
   { name: 'divide', 'label': 'Divide', tail: '', keyInServer: 'Divide', format: numberFormat.format, parse: (_) => parseInt(_) },
@@ -800,6 +833,17 @@ function formatDelay(delay) {
 
 .channel-info-histogram-indicator
   width: 4px
+
+.count-ratio-card
+  margin: 8px
+  margin-left: 0px
+
+.count-ratio-grid
+  display: grid
+  grid-template-columns: repeat(3, max-content)
+  grid-template-rows: repeat(2, auto)
+  grid-auto-flow: column
+  gap: 4px 48px
 
 .histogram-card
   margin: 8px

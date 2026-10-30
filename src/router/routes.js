@@ -8,6 +8,7 @@ const routes = [
       { path: 'dashboard', meta: { title: 'Dashboard - InteractionFree View' }, component: () => import('pages/DashBoard.vue') },
       { path: 'tdcviewer', meta: { title: 'TDCViewer - InteractionFree View' }, component: () => import('pages/TDCViewer.vue') },
       { path: 'tdcencoding', meta: { title: 'TDCEncoding - InteractionFree View' }, component: () => import('pages/TDCEncoding.vue') },
+      { path: 'encoding_for_test', meta: { title: 'Encoding_for_test - InteractionFree View' }, component: () => import('pages/EncodingForTest.vue') },
       { path: 'tdcencoding20', meta: { title: 'Encoding 2.0 - InteractionFree View' }, component: () => import('pages/TDCEncoding20.vue') },
       { path: 'process', meta: { title: 'Process - InteractionFree View' }, component: () => import('pages/TFProcess.vue') },
       { path: 'config', meta: { title: 'Config - InteractionFree View' }, component: () => import('pages/TFConfig.vue') },
