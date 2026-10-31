@@ -269,7 +269,7 @@ function onUpdateReview() {
 
 const filter = {
   'Data.Counter': 1,
-  'Data.TDCEncoding3': 1,
+  'Data.TFQKDEncoding3': 1,
   'Data.TFQKDSyncAlice': 1,
   'Data.TFQKDSyncBob': 1,
   'Data.TFQKDSyncAliceMonitor': 1,
@@ -367,11 +367,11 @@ function plot(result, append) {
       traces.push({ x: [0], y: [0], type: 'scatter', name: '' })
     }
   } else {
-    const configuration = result['Data']['TDCEncoding3']['Configuration']
+    const configuration = result['Data']['TFQKDEncoding3']['Configuration']
     const xs = linspace(0, configuration['Period'] / 1000.0, configuration['BinCount'])
     let histogramXsMatched = true
     if (!append) MEHistograms.map(h => h.clear())
-    const meData = result['Data']['TDCEncoding3']
+    const meData = result['Data']['TFQKDEncoding3']
     for (const i in MEConfigs) {
       const hisIs = MEConfigs[i][2]
       if (MEConfigs[i][1].startsWith('me')) {
@@ -449,7 +449,7 @@ function calculateRegionValues(result, histograms) {
   const regionWidths = markPoints.map(markPoint => markPoint[1] - markPoint[0])
   MEConfigs.map((config, i) => {
     const regionValue = markPoints.map(markPoint => histograms[i].xs.map((x, j) => [x, histograms[i].ys[j]]).filter(z => z[0] >= markPoint[0] && z[0] < markPoint[1]).map(z => z[1]).reduce((a, b) => a + b, 0))
-    const correspondingPulseCount = config[2].map(r => result['Data']['TDCEncoding3']['PulseCount[' + r + ']']).reduce((a, b) => a + b, 0)
+    const correspondingPulseCount = config[2].map(r => result['Data']['TFQKDEncoding3']['PulseCount[' + r + ']']).reduce((a, b) => a + b, 0)
     return regionValue.map((v, i) => v / regionWidths[i]).concat([correspondingPulseCount])
   }).map((v, i) => regionValues[MEConfigs[i][0]] = v)
   return regionValues

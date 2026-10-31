@@ -245,6 +245,9 @@ import { Histogram, TDCStorageStreamFetcher, linspace, parseDateString } from '.
 import moment from 'moment';
 import Plotly from 'plotly.js-dist-min'
 const { getPaletteColor } = colors
+const props = defineProps({
+  analyser: { type: String, default: 'MultiHistogram' },
+})
 const route = useRoute()
 const numberFormat = new Intl.NumberFormat('ja-JP')
 let workerTDC = null
@@ -252,7 +255,7 @@ let workerTDC = null
 const parameters = route.query
 const tdcService = parameters['tdcservice'] || null
 const collection = parameters['collection'] || null
-const analyser = parameters['analyser'] || 'MultiHistogram'
+const analyser = parameters['analyser'] || props.analyser
 let tdcServer = null
 
 const channelCount = 16

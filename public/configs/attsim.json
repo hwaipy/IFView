@@ -25,6 +25,13 @@
         },
         {
           "type": "application/page",
+          "name": "tdcviewer-for-test",
+          "label": "TDCViewer_for_test",
+          "icon": "timeline",
+          "href": "#/tdcviewer_for_test?experiment=attsim&tdcservice=TFTDCServer&collection=TFQKD_TDC"
+        },
+        {
+          "type": "application/page",
           "name": "encoding",
           "label": "Encoding",
           "icon": "leaderboard",

@@ -7,6 +7,7 @@ const routes = [
       { path: 'attsim', meta: { title: 'AttSim - InteractionFree View' }, component: () => import('pages/AttSim.vue') },
       { path: 'dashboard', meta: { title: 'Dashboard - InteractionFree View' }, component: () => import('pages/DashBoard.vue') },
       { path: 'tdcviewer', meta: { title: 'TDCViewer - InteractionFree View' }, component: () => import('pages/TDCViewer.vue') },
+      { path: 'tdcviewer_for_test', meta: { title: 'TDCViewer_for_test - InteractionFree View' }, component: () => import('pages/TDCViewer.vue'), props: { analyser: 'TDCViewer2' } },
       { path: 'tdcencoding', meta: { title: 'TDCEncoding - InteractionFree View' }, component: () => import('pages/TDCEncoding.vue') },
       { path: 'encoding_for_test', meta: { title: 'Encoding_for_test - InteractionFree View' }, component: () => import('pages/EncodingForTest.vue') },
       { path: 'tdcencoding20', meta: { title: 'Encoding 2.0 - InteractionFree View' }, component: () => import('pages/TDCEncoding20.vue') },
