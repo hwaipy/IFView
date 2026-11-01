@@ -1,4 +1,10 @@
 {
+  "CalvinFriend2502LAN": {
+    "NONSSL": {
+      "default": "ws://192.168.25.5:1063/ws/"
+    },
+    "SSL": {}
+  },
   "CharlieFriend": {
     "NONSSL": {
       "localhost:9000": "ws://iflab.qpqi.group:1263/ws/",

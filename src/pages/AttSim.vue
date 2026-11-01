@@ -1,6 +1,9 @@
 <template>
   <q-page padding>
     <h1 class="text-h4">AttSim</h1>
+    <q-banner v-if="route.query.experiment === 'attsim-lan'" class="bg-blue-1 text-primary q-mb-md" rounded>
+      2502 局域网模式 · 服务连接：ws://192.168.25.5:1063/ws/
+    </q-banner>
     <div class="text-caption text-grey-7 q-mb-md">
       <span v-if="fetchTime">Storage 更新时间：{{ fetchTime }}</span>
       <span v-else>正在等待 Storage 数据…</span>

@@ -37,8 +37,11 @@ class ExperimentConfig {
       const currentHost = window.location.host
       for (const key in data['IFWorkers']) {
         const brokerName = data['IFWorkers'][key]
-        const workerMap = brokers[brokerName][ssl ? 'SSL' : 'NONSSL']
-        const workerAddress = workerMap[currentHost]
+        const workerMap = brokers[brokerName]?.[ssl ? 'SSL' : 'NONSSL']
+        const workerAddress = workerMap?.[currentHost] || workerMap?.default
+        if (!workerAddress) {
+          throw new Error(`未配置 ${brokerName} 在 ${window.location.protocol}//${currentHost} 下的连接地址。2502 局域网版请通过 HTTP 打开。`)
+        }
         if (!this.workers[workerAddress]) this.workers[workerAddress] = IFWorker(workerAddress)
         this.workerNames[key] = brokerName
         this.workers[brokerName] = this.workers[workerAddress]

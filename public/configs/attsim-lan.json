@@ -1,0 +1,166 @@
+{
+  "IFWorkers": {
+    "Main": "CalvinFriend2502LAN",
+    "TDC": "CalvinFriend2502LAN"
+  },
+  "Applications": [
+    {
+      "type": "application/page",
+      "name": "dashboard",
+      "label": "DashBoard",
+      "icon": "speed",
+      "href": "#/dashboard?experiment=attsim-lan"
+    },
+    {
+      "type": "application/set",
+      "name": "tf-qkd",
+      "label": "TF-QKD-2502",
+      "applications": [
+        {
+          "type": "application/page",
+          "name": "tdcviewer",
+          "label": "TDCViewer",
+          "icon": "timeline",
+          "href": "#/tdcviewer?experiment=attsim-lan&tdcservice=TFTDCServer&collection=TFQKD_TDC"
+        },
+        {
+          "type": "application/page",
+          "name": "tdcviewer-for-test",
+          "label": "TDCViewer_for_test",
+          "icon": "timeline",
+          "href": "#/tdcviewer_for_test?experiment=attsim-lan&tdcservice=TFTDCServer&collection=TFQKD_TDC"
+        },
+        {
+          "type": "application/page",
+          "name": "encoding",
+          "label": "Encoding",
+          "icon": "leaderboard",
+          "href": "#/tdcencoding?experiment=attsim-lan&collection=TFQKD_TDC"
+        },
+        {
+          "type": "application/page",
+          "name": "encoding20",
+          "label": "Encoding 2.0",
+          "icon": "leaderboard",
+          "href": "#/tdcencoding20?experiment=attsim-lan&collection=TFQKD_TDC"
+        },
+        {
+          "type": "application/page",
+          "name": "encoding-for-test",
+          "label": "Encoding_for_test",
+          "icon": "leaderboard",
+          "href": "#/encoding_for_test?experiment=attsim-lan&collection=TFQKD_TDC"
+        },
+        {
+          "type": "application/page",
+          "name": "process",
+          "label": "Process",
+          "icon": "checklist",
+          "href": "#/process?experiment=attsim-lan&tdcservice=TFTDCServer&collection=TFQKD_TDC&nameA=Alice&nameB=Bob&nameC=Calvin"
+        },
+        {
+          "type": "application/page",
+          "name": "config",
+          "label": "Config",
+          "icon": "settings",
+          "href": "#/config?experiment=attsim-lan"
+        },
+        {
+          "type": "application/page",
+          "name": "monitor",
+          "label": "Monitor",
+          "icon": "monitor",
+          "href": "#/tfmonitor?experiment=attsim-lan&collection=TFQKD_TDC"
+        },
+        {
+          "type": "application/page",
+          "name": "access",
+          "label": "Access",
+          "icon": "bi-wifi",
+          "href": "#/tfaccess?experiment=attsim-lan"
+        }
+      ]
+    },
+    {
+      "type": "application/page",
+      "name": "attsim",
+      "label": "AttSim",
+      "icon": "science",
+      "href": "#/attsim?experiment=attsim-lan"
+    }
+  ],
+  "Access": [
+    {
+      "ServiceName": "IF Broker",
+      "AccessLab": "192.168.25.5:1061",
+      "AccessCampus": "172.20.8.102:1161",
+      "AccessField": "code.qpqi.group:1161"
+    },
+    {
+      "ServiceName": "[VNC] Alice",
+      "AccessLab": "192.168.25.10(:5900)",
+      "AccessCampus": "172.20.8.102:50036",
+      "AccessField": "vnc.qpqi.group:50036"
+    },
+    {
+      "ServiceName": "[VNC] Bob",
+      "AccessLab": "192.168.25.37(:5900)",
+      "AccessCampus": "172.20.8.102:50037",
+      "AccessField": "vnc.qpqi.group:50037"
+    },
+    {
+      "ServiceName": "[VNC] Calvin",
+      "AccessLab": "192.168.25.7(:5900)",
+      "AccessCampus": "172.20.8.102:50038",
+      "AccessField": "vnc.qpqi.group:50038"
+    },
+    {
+      "ServiceName": "[VNC] Alice AWG70k",
+      "AccessLab": "192.168.25.51(:5900)",
+      "AccessCampus": "172.20.8.102:50051",
+      "AccessField": "vnc.qpqi.group:50051"
+    },
+    {
+      "ServiceName": "[VNC] Bob AWG70k",
+      "AccessLab": "192.168.25.52(:5900)",
+      "AccessCampus": "172.20.8.102:50052",
+      "AccessField": "vnc.qpqi.group:50052"
+    },
+    {
+      "ServiceName": "[VNC] Calvin Server",
+      "AccessLab": "192.168.25.5(:5900)",
+      "AccessCampus": "172.20.8.102:50138",
+      "AccessField": "vnc.qpqi.group:50138"
+    },
+    {
+      "ServiceName": "[SSH] Calvin Server",
+      "AccessLab": "192.168.25.5(:22)",
+      "AccessCampus": "172.20.8.102:13822",
+      "AccessField": "-"
+    },
+    {
+      "ServiceName": "Meta Data",
+      "AccessLab": "192.168.25.5:1061",
+      "AccessCampus": "172.20.8.102:1161",
+      "AccessField": "code.qpqi.group:1161"
+    },
+    {
+      "ServiceName": "Raw Data",
+      "AccessLab": "192.168.25.5:1000",
+      "AccessCampus": "172.20.8.102:1001",
+      "AccessField": "code.qpqi.group:1001"
+    },
+    {
+      "ServiceName": "Archived Data (Meta)",
+      "AccessLab": "-",
+      "AccessCampus": "172.20.8.102:1061",
+      "AccessField": "code.qpqi.group:1061"
+    },
+    {
+      "ServiceName": "Archived Data (Raw)",
+      "AccessLab": "-",
+      "AccessCampus": "172.20.8.102:1003",
+      "AccessField": "code.qpqi.group:1003"
+    }
+  ]
+}
